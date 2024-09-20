@@ -4,6 +4,12 @@
 import { client } from './.client/services.gen.js';
 import { SHOP_API_KEY, SHOP_API_URL } from 'astro:env/server';
 
+if (!SHOP_API_KEY || !SHOP_API_URL) {
+	throw new AstroError(
+		'Storefront API key is missing. This is not publically available yet, but you can use the mock adapter to run the Storefront yourself. See README > Services for more details.',
+	);
+}
+
 client.setConfig({
 	baseUrl: SHOP_API_URL,
 	headers: {
