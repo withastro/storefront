@@ -117,3 +117,10 @@ export function normalizeCart(cart: Cart) {
 		items: [...items.values()],
 	};
 }
+
+export function getCartSubtotal(cart: Cart) {
+	return cart.items.reduce(
+		(total, item) => total + (item.product.price - (item.product.discount ?? 0)) * item.quantity,
+		0,
+	);
+}
