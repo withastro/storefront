@@ -18,7 +18,7 @@ export function ProductImageSwitcher(props: ProductImageSwitcherProps) {
 
 	return (
 		<div class="flex aspect-[10/9] items-stretch gap-2">
-			<div class="relative flex flex-col gap-[inherit] overflow-hidden will-change-scroll">
+			<div class="relative flex flex-shrink-0 flex-col gap-[inherit] overflow-hidden will-change-scroll">
 				<For each={props.productImages}>
 					{(image, index) => (
 						<button
