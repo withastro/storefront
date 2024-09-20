@@ -20,9 +20,8 @@ const collectionResponse = await getCollectionById({
 	path: { id: collectionId },
 });
 
-if (!collectionResponse.data) {
-	Astro.response.status = 404;
-	return Astro.rewrite('/404');
+if (collectionResponse.error) {
+	return new Response(null, { status: 404 });
 }
 
 const productsResponse = await getProducts({

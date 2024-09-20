@@ -21,8 +21,7 @@ const productResponse = await getProductById({
 });
 
 if (productResponse.error) {
-	Astro.response.status = 404;
-	return Astro.rewrite('/404');
+	return new Response(null, { status: 404 });
 }
 
 const product = productResponse.data;
