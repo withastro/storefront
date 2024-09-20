@@ -1,0 +1,21 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { HTMLAttributes } from 'astro/types';
+import ExternalLink from '~/components/ui/ExternalLink.astro';
+
+export interface Props extends HTMLAttributes<'a'> {
+	name: string;
+	href: string;
+	icon: string;
+}
+
+const { name, icon, class: className = '', ...props } = Astro.props;
+---
+
+<ExternalLink
+	class=`inline-block size-10 grid-center hover:bg-theme-base-200 rounded transition ${className}`
+	{...props}
+>
+	<Icon name={icon} title={name} class="size-6 text-theme-base-600" aria-hidden="true" />
+	<span class="sr-only">{name}</span>
+</ExternalLink>

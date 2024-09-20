@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:focus {
+		outline: none;
+	}
+
+	:focus-visible {
+		@apply ring-2 ring-offset-2;
+	}
+
+	:focus-visible,
+	.focus-ring-dark :focus-visible {
+		@apply ring-theme-base-900 ring-offset-theme-base-100;
+	}
+
+	.focus-ring-light :focus-visible {
+		@apply ring-theme-base-100 ring-offset-theme-base-900;
+	}
+
+	.focus-ring-inset {
+		@apply ring-inset ring-offset-0;
+	}
+}
+
+@layer components {
+	/*
+		A responsive holy grail layout with various layers!
+
+		References:
+		- https://www.youtube.com/watch?v=c13gpBrnGEw
+		- https://ryanmulligan.dev/blog/layout-breakouts/
+
+		Example:
+		<main class="content-grid">
+			<header class="breakout">
+				<a class="content-left" href="/">
+					<SiteLogo />
+				</a>
+				<button class="content-right" type="button">
+					<UserAvatar />
+				</button>
+			</header>
+
+			<section></section>
+
+			<footer class="breakout">
+				<SocialLinks />
+				<Copyright />
+			</footer>
+		</main>
+	*/
+	.content-grid,
+	.content-grid > .breakout {
+		& {
+			--content-width: theme('screens.2xl');
+			--side-padding: theme('space.4');
+			display: grid;
+			grid-auto-flow: row;
+			grid-template-columns:
+				[breakout-start]
+				minmax(var(--side-padding), 1fr)
+				[content-start content-left-start]
+				calc(min(100% / 3 - var(--side-padding), var(--content-width) / 3))
+				[content-left-end content-center-start]
+				calc(min(100% / 3 - var(--side-padding), var(--content-width) / 3))
+				[content-center-end content-right-start]
+				calc(min(100% / 3 - var(--side-padding), var(--content-width) / 3))
+				[content-right-end content-end]
+				minmax(var(--side-padding), 1fr)
+				[breakout-end];
+		}
+
+		& > * {
+			grid-column: content;
+		}
+
+		& > .breakout {
+			grid-column: breakout;
+		}
+
+		& > .content-left {
+			grid-column: content-left;
+		}
+
+		& > .content-center {
+			grid-column: content-center;
+			justify-self: center;
+		}
+
+		& > .content-right {
+			grid-column: content-right;
+			justify-self: end;
+		}
+	}
+}

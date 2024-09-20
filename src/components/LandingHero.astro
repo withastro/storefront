@@ -1,0 +1,36 @@
+---
+import sm from '~/assets/hero-banner-sm.webp';
+import md from '~/assets/hero-banner-md.webp';
+import lg from '~/assets/hero-banner-lg.webp';
+import xl from '~/assets/hero-banner-xl.webp';
+import twoXl from '~/assets/hero-banner-2xl.webp';
+import { button } from '~/styles.ts';
+---
+
+<header
+	class="breakout focus-ring-light relative h-[384px] max-h-dvh content-end justify-items-start gap-y-4 bg-black py-8 text-white md:h-[512px] md:gap-y-8 md:bg-bottom"
+>
+	<picture>
+		<source srcset={sm.src} media="(max-width: 640px)" />
+		<source srcset={md.src} media="(max-width: 768px)" />
+		<source srcset={lg.src} media="(max-width: 1024px)" />
+		<source srcset={xl.src} media="(max-width: 1280px)" />
+		<source srcset={twoXl.src} media="(min-width: 1281px)" />
+		<img
+			src={twoXl.src}
+			alt=""
+			class="breakout absolute inset-0 size-full object-cover object-right-bottom"
+		/>
+	</picture>
+	<div
+		class="content relative text-4xl font-extrabold drop-shadow-md md:text-5xl md:leading-[50px]"
+	>
+		<h1 class="max-w-sm">Time to suit up, Astronaut.</h1>
+	</div>
+	<div class="relative">
+		<button
+			class={button({ theme: 'light', className: 'font-bold md:h-12 md:text-lg' })}
+			onclick="scrollIntoView('#products')">Shop now</button
+		>
+	</div>
+</header>

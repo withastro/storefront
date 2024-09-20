@@ -1,0 +1,14 @@
+{
+	"extends": "astro/tsconfigs/strictest",
+	"include": ["src", "astro.config.ts", "openapi-ts.config.ts"],
+	"compilerOptions": {
+		"exactOptionalPropertyTypes": false,
+		"baseUrl": ".",
+		"paths": {
+			"~/*": ["./src/*"],
+			"storefront:client": ["./src/lib/client.ts"]
+		},
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js"
+	}
+}

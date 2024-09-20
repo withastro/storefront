@@ -1,0 +1,119 @@
+---
+import Card from '~/components/ui/Card.tsx';
+import CollectionSection from '~/features/collection/CollectionSection.astro';
+import ProductCarouselSection from '~/features/product/ProductCarouselSection.astro';
+import { ProductDetailDescriptionDialog } from '~/features/product/ProductDetailDescriptionDialog.tsx';
+import { ProductImageCarousel } from '~/features/product/ProductImageCarousel.tsx';
+import { ProductImageSwitcher } from '~/features/product/ProductImageSwitcher.tsx';
+import { applyDefaultCacheHeaders } from '~/config.ts';
+import { AddToCartForm } from '~/features/cart/AddToCartForm.tsx';
+import PrimaryLayout from '~/layouts/PrimaryLayout.astro';
+import { getProductById } from 'storefront:client';
+import { unwrap } from '~/lib/util.ts';
+import { getImage } from 'astro:assets';
+import { ProductPrice } from '~/features/product/ProductPrice.tsx';
+
+applyDefaultCacheHeaders(Astro.response.headers);
+
+const id = unwrap(Astro.params.product, 'Product param not found');
+const productResponse = await getProductById({
+	path: { id },
+});
+
+if (productResponse.error) {
+	Astro.response.status = 404;
+	return Astro.rewrite('/404');
+}
+
+const product = productResponse.data;
+
+const productImageSrcs = [product.imageUrl, ...product.images.map((it) => it.url)];
+const productImages = await Promise.all(
+	productImageSrcs.map((src) =>
+		getImage({
+			src: new URL(src, Astro.url.origin).href,
+			alt: '',
+			inferSize: true,
+			widths: [400, 700, 960],
+			sizes: '(min-width: 1280px) 960px, 100vw',
+		}),
+	),
+);
+const firstImage = productImages[0];
+if (!firstImage) throw new Error(`No images found for product ${id}`);
+---
+
+<PrimaryLayout title={`Astro Shop | ${product.name}`}>
+	<main class="mx-auto mt-8 w-full max-w-[1200px] gap-8">
+		<div
+			class="mx-auto mb-16 mt-8 grid max-w-lg grid-cols-1 lg:mx-0 lg:max-w-none lg:grid-cols-[1fr_32rem] lg:gap-32"
+		>
+			<div>
+				{
+					productImages.length > 1 ? (
+						<>
+							<div class="-mx-4 -mt-8 md:m-0 lg:hidden">
+								<ProductImageCarousel client:idle {productImages} />
+							</div>
+							<div class="hidden lg:block">
+								<ProductImageSwitcher client:idle {productImages} />
+							</div>
+						</>
+					) : (
+						<Card class="aspect-square justify-center">
+							<img
+								src={firstImage.src}
+								srcset={firstImage.srcSet.attribute}
+								sizes={firstImage.attributes.sizes}
+								alt={product.name}
+								class="object-cover"
+							/>
+						</Card>
+					)
+				}
+			</div>
+
+			<div class="mt-4">
+				<header class="mb-8 flex flex-col items-start gap-3">
+					{
+						product.discount > 0 ? (
+							<p class="rounded-full bg-red-100 px-3 py-[6px] text-sm  font-medium text-red-600">
+								{Math.round((1 - (product.price - product.discount) / product.price) * 100)}% off
+							</p>
+						) : null
+					}
+					<h1 class="text-pretty text-3xl font-bold md:text-4xl">
+						{product.name}
+					</h1>
+					{product.tagline && <p class="text-slate-700">{product.tagline}</p>}
+					<p class="text-xl text-slate-700 md:text-2xl">
+						<ProductPrice
+							class="gap-3 font-semibold"
+							price={product.price}
+							discount={product.discount}
+						/>
+					</p>
+				</header>
+
+				<AddToCartForm client:idle product={product} />
+				{
+					product.description && (
+						<ProductDetailDescriptionDialog title="Description" client:idle>
+							<div
+								class="prose whitespace-pre-line py-6 prose-li:my-0"
+								set:html={product.description}
+							/>
+						</ProductDetailDescriptionDialog>
+					)
+				}
+			</div>
+		</div>
+
+		<ProductCarouselSection
+			heading="You might also like"
+			filterProducts={(products) => products.filter(({ id }) => id !== product.id)}
+		/>
+
+		<CollectionSection />
+	</main>
+</PrimaryLayout>

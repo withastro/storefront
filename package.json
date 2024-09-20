@@ -1,0 +1,63 @@
+{
+	"name": "shop.astro.build",
+	"type": "module",
+	"version": "0.0.1",
+	"license": "MIT",
+	"engines": {
+		"node": "20.17.0"
+	},
+	"packageManager": "pnpm@9.10.0+sha512.73a29afa36a0d092ece5271de5177ecbf8318d454ecd701343131b8ebc0c1a91c487da46ab77c8e596d6acf1461e3594ced4becedf8921b074fbd8653ed7051c",
+	"scripts": {
+		"dev:ci": "doppler run pnpm openapi-ts && doppler run astro dev",
+		"dev": "astro dev",
+		"start": "astro dev",
+		"build:ci": "pnpm openapi-ts && pnpm astro build",
+		"build": "pnpm astro build",
+		"astro": "astro",
+		"lint": "astro sync && run-s --continue-on-error lint:*",
+		"lint:biome": "biome lint src",
+		"lint:astro": "astro check",
+		"lint:types": "tsc -b",
+		"test:e2e": "playwright test",
+		"format": "run-s --continue-on-error format:*",
+		"format:biome": "biome check . --apply",
+		"format:prettier": "prettier . --cache --write --list-different"
+	},
+	"devDependencies": {
+		"@astrojs/check": "0.7.0",
+		"@biomejs/biome": "^1.4.1",
+		"@hey-api/openapi-ts": "^0.53.0",
+		"@types/node": "^20.10.4",
+		"npm-run-all": "^4.1.5",
+		"prettier": "^3.1.1",
+		"prettier-plugin-astro": "^0.12.2",
+		"prettier-plugin-jsdoc": "^1.1.1",
+		"prettier-plugin-tailwindcss": "^0.5.9",
+		"typescript": "^5.3.3",
+		"vite": "^5.4.5"
+	},
+	"dependencies": {
+		"@astrojs/netlify": "^5.5.0",
+		"@astrojs/solid-js": "^4.4.0",
+		"@astrojs/tailwind": "5.1.0",
+		"@fontsource-variable/inter": "5.0.18",
+		"@hey-api/client-fetch": "^0.2.4",
+		"@kobalte/core": "0.13.4",
+		"@kobalte/tailwindcss": "0.9.0",
+		"@playwright/test": "^1.47.0",
+		"@sentry/astro": "^8.30.0",
+		"@tailwindcss/typography": "0.5.13",
+		"@tanstack/solid-query": "^5.52.2",
+		"@tanstack/solid-query-devtools": "^5.52.2",
+		"astro": "^4.12.2",
+		"astro-icon": "^1.1.1",
+		"solid-icons": "^1.1.0",
+		"solid-js": "^1.8.19",
+		"stripe": "16.6.0",
+		"tailwind-merge": "2.4.0",
+		"tailwindcss": "^3.4.11",
+		"tailwindcss-animate": "^1.0.7",
+		"type-fest": "^4.26.1",
+		"zod": "3.23.8"
+	}
+}

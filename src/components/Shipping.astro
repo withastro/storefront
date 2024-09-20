@@ -1,0 +1,70 @@
+---
+import type { Address } from 'storefront:client';
+
+type Props = {
+	address: Exclude<Address, null>;
+	location?: { lat: number; lng: number };
+};
+
+const { address, location } = Astro.props;
+---
+
+<section class="grid grid-cols-1 gap-8 sm:h-[270px] sm:grid-cols-2 sm:grid-rows-2">
+	{
+		location ? (
+			<google-maps-wrapper
+				class="h-[270px] bg-gray-100 sm:row-span-2"
+				data-lat={location.lat}
+				data-long={location.lng}
+			/>
+		) : (
+			<div class="h-[270px] bg-gray-100 sm:row-span-2" />
+		)
+	}
+	<div>
+		<h2 class="mb-2 text-lg font-semibold">Your order is confirmed</h2>
+		<p>You'll receive an email confirmation shortly.</p>
+	</div>
+	<div>
+		<h3 class="mb-2 text-slate-600">Shipping address</h3>
+		<address class="font-semibold not-italic">
+			<p>{address.line1}</p>
+			{address.line2 && <p>{address.line2}</p>}
+			<p>
+				{address.city}, {address.province}{' '}
+				{address.postal}
+			</p>
+			<p>{address.country}</p>
+		</address>
+	</div>
+</section>
+
+<script>
+	import { GOOGLE_MAPS_BROWSER_KEY } from 'astro:env/client';
+
+	class GoogleMapsWrapper extends HTMLElement {
+		async connectedCallback() {
+			await import(
+				/* @vite-ignore */ `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_BROWSER_KEY}&libraries=maps&v=beta`
+			);
+
+			const { lat, long } = this.dataset;
+			const center = { lat: Number(lat), lng: Number(long) };
+			const mapOptions = {
+				center: { lat: Number(lat), lng: Number(long) },
+				zoom: 16,
+				disableDefaultUI: true,
+			};
+
+			// @ts-ignore
+			const map = new google.maps.Map(this, mapOptions);
+			// @ts-ignore
+			new google.maps.Marker({
+				position: center,
+				map: map,
+				title: 'Shipping address',
+			});
+		}
+	}
+	customElements.define('google-maps-wrapper', GoogleMapsWrapper);
+</script>

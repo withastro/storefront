@@ -1,0 +1,27 @@
+---
+import { getProducts, type Product } from 'storefront:client';
+import ProductCarousel, { MEASURED_ITEM_ID, GAP } from './ProductCarousel.tsx';
+import ProductCard from './ProductCard.astro';
+
+type Props = {
+	heading: string;
+	filterProducts?: (products: Product[]) => Product[];
+};
+
+const { heading, filterProducts = (products) => products } = Astro.props;
+
+const productsResponse = await getProducts();
+const products = filterProducts(productsResponse.data?.items ?? []);
+---
+
+<ProductCarousel {heading} client:idle>
+	<ul class="flex w-max pb-4" style={{ gap: GAP + 'px' }}>
+		{
+			products.map((product, idx) => (
+				<li id={idx === 0 ? MEASURED_ITEM_ID : undefined} class="shrink-0 snap-start">
+					<ProductCard {...product} class="w-72" imageLoading={idx === 0 ? 'eager' : 'lazy'} />
+				</li>
+			))
+		}
+	</ul>
+</ProductCarousel>

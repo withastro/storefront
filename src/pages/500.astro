@@ -1,0 +1,21 @@
+---
+import CollectionSection from '~/features/collection/CollectionSection.astro';
+import PrimaryLayout from '~/layouts/PrimaryLayout.astro';
+
+export const prerender = true;
+---
+
+<PrimaryLayout title="Astro Shop">
+	<main>
+		<div class="mx-auto my-16 grid max-w-lg lg:my-48">
+			<h1 class="mb-6 text-3xl font-semibold sm:text-5xl">Unexpected issue ⚠</h1>
+			<p>
+				Sorry, we hit an problem on our end. <a
+					class="font-semibold underline"
+					href="https://astro.build/chat">Please let us know</a
+				> and we will help resolve the issue.
+			</p>
+		</div>
+		<CollectionSection heading="Back to the shop" />
+	</main>
+</PrimaryLayout>

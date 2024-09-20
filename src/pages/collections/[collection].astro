@@ -1,0 +1,75 @@
+---
+import { unwrap } from '~/lib/util.ts';
+import CheckboxLink from '~/components/ui/CheckboxLink.astro';
+import ProductCard from '~/features/product/ProductCard.astro';
+import { applyDefaultCacheHeaders } from '~/config.ts';
+import PrimaryLayout from '~/layouts/PrimaryLayout.astro';
+import { getCollectionById, getProducts } from 'storefront:client';
+import SideColumnLayout from '~/layouts/SideColumnLayout.astro';
+import { z } from 'zod';
+
+const searchParams = Object.fromEntries(Astro.url.searchParams);
+
+const sort = z.enum(['price']).optional().parse(searchParams.sort);
+const order = z.enum(['asc', 'desc']).optional().parse(searchParams.order);
+
+applyDefaultCacheHeaders(Astro.response.headers);
+
+const collectionId = unwrap(Astro.params.collection, 'Collection param not found');
+const collectionResponse = await getCollectionById({
+	path: { id: collectionId },
+});
+
+if (!collectionResponse.data) {
+	Astro.response.status = 404;
+	return Astro.rewrite('/404');
+}
+
+const productsResponse = await getProducts({
+	query: { collectionId, sort, order },
+});
+
+if (!productsResponse.data) {
+	return new Response(undefined, { status: 404 });
+}
+
+const collection = collectionResponse.data;
+const products = productsResponse.data.items;
+---
+
+<PrimaryLayout title={`Astro Shop | ${collection.name}`}>
+	<div class="flex flex-col gap-4 pt-4">
+		<SideColumnLayout class="flex flex-wrap gap-4">
+			<div slot="aside" class="flex flex-col gap-4 py-4">
+				<header>
+					<h2 class="text-2xl font-bold">
+						{collection.name}
+					</h2>
+					<p class="text-sm font-medium text-slate-600">
+						{products.length} products
+					</p>
+				</header>
+				<nav class="flex flex-col gap-2" aria-labelledby="sort-by-heading">
+					<h3 id="sort-by-heading" class="font-semibold">Sort by</h3>
+					<ul class="contents">
+						<li>
+							<CheckboxLink href={`?sort=price&order=asc`} label="Price: Low to High" />
+						</li>
+						<li>
+							<CheckboxLink href={`?sort=price&order=desc`} label="Price: High to Low" />
+						</li>
+					</ul>
+				</nav>
+			</div>
+
+			<section
+				slot="main"
+				class="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-4"
+				aria-labelledby="products-heading"
+				aria-label="Products"
+			>
+				{products.map((product) => <ProductCard {...product} />)}
+			</section>
+		</SideColumnLayout>
+	</div>
+</PrimaryLayout>

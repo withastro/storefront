@@ -1,0 +1,54 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+	"organizeImports": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"style": {
+				"all": false,
+				"useNodejsImportProtocol": "warn",
+				"noUnusedTemplateLiteral": "off"
+			},
+			"correctness": {
+				"noUnusedImports": "warn"
+			},
+			"suspicious": {
+				"noImplicitAnyLet": "off",
+				"noEmptyInterface": "off"
+			}
+		}
+	},
+	"vcs": {
+		"clientKind": "git",
+		"enabled": true,
+		"useIgnoreFile": true
+	},
+	"formatter": {
+		"enabled": false
+	},
+	"overrides": [
+		{
+			"include": ["**/*.astro"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						// biome doesn't recognize import usages in astro templates
+						"noUnusedImports": "off"
+					}
+				}
+			}
+		},
+		{
+			"include": ["tsconfig.json", "tsconfig.*.json", "turbo.json"],
+			"json": {
+				"parser": {
+					"allowComments": true,
+					"allowTrailingCommas": true
+				}
+			}
+		}
+	]
+}

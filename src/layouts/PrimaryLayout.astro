@@ -1,0 +1,58 @@
+---
+import '@fontsource-variable/inter';
+import SEO from '~/components/layout/SEO.astro';
+import SiteFooter from '~/components/layout/SiteFooter.astro';
+import SiteHeader from '~/components/layout/SiteHeader.astro';
+import SiteRibbon from '~/components/layout/SiteRibbon.astro';
+import { SolidQueryDevtools } from '~/components/SolidQueryDevtools.tsx';
+import { FATHOM_SITE_ID } from 'astro:env/client';
+import '../styles.css';
+
+const defaults = {
+	name: 'Astro Shop',
+	description: 'Ready yourself for liftoff Astronaut and gear up with the latest in Astro swag.',
+	image: {
+		src: '/social.webp?v=1',
+		alt: 'Astro Shop',
+	},
+} as const;
+
+type Props = {
+	title: string;
+};
+
+const { title } = Astro.props;
+---
+
+<html lang="en" class="overflow-x-clip bg-white text-theme-base-900">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="mask-icon" href="/favicon.svg" color="#8D46E7" />
+
+		<SEO {...defaults} {title} />
+
+		{
+			FATHOM_SITE_ID && (
+				<script
+					src="https://cdn.usefathom.com/script.js"
+					data-site={FATHOM_SITE_ID}
+					is:inline
+					defer
+				/>
+			)
+		}
+	</head>
+	<body class="content-grid min-h-screen place-content-start">
+		<SiteRibbon />
+		<div class={`breakout border-b w-full border-theme-base-300`}></div>
+		<SiteHeader />
+		<div class={`breakout border-b w-full border-theme-base-300`}></div>
+		<slot />
+		<div class="align-self-end h-full pt-48">
+			<SiteFooter />
+		</div>
+		{import.meta.env.DEV && <SolidQueryDevtools client:idle />}
+	</body>
+</html>

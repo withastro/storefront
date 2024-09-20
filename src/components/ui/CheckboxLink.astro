@@ -1,0 +1,28 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+export interface Props extends HTMLAttributes<'a'> {
+	href: string;
+	label: string;
+	checked?: boolean;
+}
+
+const { checked, label, class: className = '', ...props } = Astro.props;
+const href = new URL(props.href, Astro.url);
+const active = href.href === Astro.url.href;
+---
+
+<a class={`flex items-center gap-2 ${className}`} {...props}>
+	{
+		checked ?? active ? (
+			<div class="size-4 rounded-full border-4 border-slate-900">
+				<span class="sr-only">Checked</span>
+			</div>
+		) : (
+			<div class="size-4 rounded-full border-2 border-slate-400">
+				<span class="sr-only">Unchecked</span>
+			</div>
+		)
+	}
+	<span class="text-sm font-medium text-slate-600">{label}</span>
+</a>

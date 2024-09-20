@@ -1,0 +1,28 @@
+---
+import CollectionCard from './CollectionCard.astro';
+import { PageHeading, PageSection } from '~/components/ui/PageSection.tsx';
+import { getCollections } from 'storefront:client';
+
+export interface Props {
+	heading?: string;
+}
+
+const collectionsResponse = await getCollections();
+
+const collections = collectionsResponse.data?.items ?? [];
+
+const HEADING_ID = 'collection-section-heading';
+const { heading = 'Shop by category' } = Astro.props;
+---
+
+<PageSection aria-labelledby={HEADING_ID}>
+	<PageHeading id={HEADING_ID}>{heading}</PageHeading>
+	<div class="grid gap-4 sm:grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]">
+		{
+			collections.map(
+				(collection) =>
+					collection.slug && <CollectionCard {...collection} slug={collection.slug} />,
+			)
+		}
+	</div>
+</PageSection>

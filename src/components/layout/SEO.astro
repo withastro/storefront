@@ -1,0 +1,94 @@
+---
+export type Image = {
+	src: string;
+	alt: string;
+};
+export type SEOMetadata = {
+	name: string;
+	title: string;
+	description: string;
+	image: Image;
+	canonicalURL?: URL | string;
+	locale?: string;
+};
+export type OpenGraph = Partial<SEOMetadata> & {
+	type?: string;
+};
+export type Twitter = Partial<SEOMetadata> & {
+	handle?: string;
+	card?: 'summary' | 'summary_large_image';
+};
+export type Props = SEOMetadata & {
+	og?: OpenGraph;
+	twitter?: Twitter;
+};
+const {
+	name,
+	title,
+	description,
+	image,
+	locale = 'en',
+	canonicalURL = new URL(Astro.url.pathname, Astro.site),
+	og: _og = {},
+	twitter: _twitter = {},
+} = Astro.props;
+
+const og: OpenGraph = {
+	name,
+	title,
+	description,
+	canonicalURL,
+	image,
+	locale,
+	type: 'website',
+	..._og,
+};
+const twitter: Twitter = {
+	name,
+	title,
+	description,
+	canonicalURL,
+	image,
+	locale,
+	card: 'summary_large_image',
+	..._twitter,
+};
+
+const ensureTrailingSlash = (url: string | URL) => url.toString().replace(/\/$/, '') + '/';
+---
+
+<!-- Page Metadata -->
+<meta name="generator" content={Astro.generator} />
+<link rel="canonical" href={ensureTrailingSlash(canonicalURL)} />
+<title>{title}</title>
+<meta name="description" content={description} />
+
+<!-- OpenGraph Tags -->
+<meta property="og:title" content={og.title} />
+<meta property="og:type" content={og.type} />
+<meta property="og:url" content={ensureTrailingSlash(og.canonicalURL!)} />
+<meta property="og:locale" content={og.locale} />
+<meta property="og:description" content={og.description} />
+<meta property="og:site_name" content={og.name} />
+{
+	og.image && (
+		<>
+			<meta property="og:image" content={og.image.src} />
+			<meta property="og:image:alt" content={og.image.alt} />
+		</>
+	)
+}
+
+<!-- Twitter Tags -->
+{twitter.card && <meta name="twitter:card" content={twitter.card} />}
+{twitter.handle && <meta name="twitter:site" content={twitter.handle} />}
+<meta name="twitter:title" content={twitter.title} />
+<meta name="twitter:description" content={twitter.description} />
+{
+	twitter.image && (
+		<>
+			<meta name="twitter:image" content={twitter.image.src} />
+			<meta name="twitter:image:alt" content={twitter.image.alt} />
+		</>
+	)
+}

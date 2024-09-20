@@ -1,0 +1,132 @@
+---
+import { GOOGLE_GEOLOCATION_SERVER_KEY } from 'astro:env/server';
+import { formatProductPrice } from '~/lib/currency.ts';
+import { unwrap } from '~/lib/util.ts';
+import { z } from 'astro/zod';
+import successIcon from '~/assets/checkout-success-icon.svg';
+import Shipping from '~/components/Shipping.astro';
+import { ONE_DAY } from '~/config.ts';
+import PrimaryLayout from '~/layouts/PrimaryLayout.astro';
+import { formatOneLineAddress } from '~/lib/address.ts';
+import { getOrderById, type Address } from 'storefront:client';
+import { joinWithProducts } from '~/lib/products.ts';
+
+const orderId = unwrap(Astro.params.order, 'order param not found');
+
+const orderResponse = await getOrderById({ path: { id: orderId } });
+if (orderResponse.error) {
+	Astro.response.status = 404;
+	return Astro.rewrite('/404');
+}
+const order = orderResponse.data;
+const lineItems = await joinWithProducts(order.lineItems);
+
+async function getGeoLocation(address: Exclude<Address, null>) {
+	if (!GOOGLE_GEOLOCATION_SERVER_KEY) {
+		console.error('Missing GOOGLE_GEOLOCATION_SERVER_KEY');
+		return undefined;
+	}
+	const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+	url.searchParams.append('address', formatOneLineAddress(address));
+	url.searchParams.append('key', GOOGLE_GEOLOCATION_SERVER_KEY);
+	let geo;
+	try {
+		geo = await fetch(url);
+		const { results } = z
+			.object({
+				results: z
+					.array(
+						z.object({
+							geometry: z.object({
+								location: z.object({
+									lat: z.number(),
+									lng: z.number(),
+								}),
+							}),
+						}),
+					)
+					.nonempty(),
+			})
+			.parse(await geo.clone().json());
+		return results[0].geometry.location;
+	} catch (error) {
+		if (geo) {
+			console.error(`Failed to get geo location from shipping address [${geo.status}]`, error);
+			console.error('Full response: ', await geo.text());
+			return undefined;
+		}
+		throw error;
+	}
+}
+
+const geoLocation = order.shippingAddress && (await getGeoLocation(order.shippingAddress));
+if (!order.shippingAddress) {
+	console.error('Stripe unexpectedly did not provide a shipping address in the session details.');
+	// Display the information we can with a status code for error tracking.
+	Astro.response.status = 500;
+} else {
+	Astro.response.headers.set('cache-control', `public,max-age=0,must-revalidate`);
+	Astro.response.headers.set(
+		// Order page can be cached for longer.
+		// Note: lower s-maxage if you add timely information like shipping status.
+		'cdn-cache-control',
+		`public,s-maxage=${ONE_DAY},stale-while-revalidate=${60 * 30}`,
+	);
+}
+---
+
+<PrimaryLayout title="Thanks for your order">
+	<div class="mx-auto w-full max-w-prose text-slate-900">
+		<header class="flex flex-col gap-4 py-8">
+			<img
+				src={successIcon.src}
+				alt="Checkmark on receipt with sparkles"
+				class="mx-auto h-24 w-24"
+			/>
+			<h1 class="text-center text-xl font-bold">
+				{
+					order.customerName
+						? `Thank you for your order, ${order.customerName}!`
+						: 'Thank you for your order!'
+				}
+			</h1>
+		</header>
+		{
+			order.shippingAddress && geoLocation && (
+				<Shipping address={order.shippingAddress} location={geoLocation} />
+			)
+		}
+		<h2 class="mb-4 mt-8 text-lg font-bold">Items in your order</h2>
+		<ul>
+			{
+				lineItems.map(({ quantity, product }) => {
+					return (
+						<Fragment>
+							<li class="flex items-center gap-2 py-2">
+								<img
+									src={product.imageUrl}
+									alt={product.name}
+									class="size-24 rounded object-contain"
+								/>
+								<div class="flex flex-1 flex-col gap-1">
+									<h3>{product.name}</h3>
+									<p class="text-slate-600">Quantity: {quantity}</p>
+								</div>
+								<p class="text-slate-600">{formatProductPrice(product.price * quantity)}</p>
+							</li>
+						</Fragment>
+					);
+				})
+			}
+		</ul>
+		<div class="flex justify-between gap-4">
+			<p>Total</p>
+			<p class="text-right">{formatProductPrice(order.totalPrice)}</p>
+		</div>
+		<hr class="my-4" />
+		<div class="flex justify-between gap-4">
+			<p>Total</p>
+			<p class="text-right">{formatProductPrice(order.totalPrice)}</p>
+		</div>
+	</div>
+</PrimaryLayout>

@@ -1,0 +1,15 @@
+{
+	"prettier.documentSelectors": ["**/*.{astro,svelte}"],
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.rulers": [100],
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.organizeImports": "never",
+		"source.fixAll": "always",
+		"source.organizeImports.biome": "always",
+		"quickfix.biome": "always"
+	},
+	"typescript.tsdk": "node_modules\\typescript\\lib",
+	"javascript.preferences.importModuleSpecifierEnding": "js",
+	"typescript.preferences.importModuleSpecifierEnding": "js"
+}

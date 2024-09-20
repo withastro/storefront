@@ -1,0 +1,36 @@
+---
+import { CartDrawer } from '~/features/cart/CartDrawer.tsx';
+import AstroLogo from './AstroLogo.astro';
+import type { HTMLAttributes } from 'astro/types';
+
+export interface Props extends HTMLAttributes<'nav'> {}
+
+const { class: className, ...props } = Astro.props;
+---
+
+<nav
+	aria-label="Site navigation"
+	class={`min-h-20 !flex items-center flex-row md:justify-between py-2 bg-white ${className}`}
+	{...props}
+>
+	<div class="flex-1">
+		<a class="-m-2 block w-fit p-2 transition hover:text-theme-base-600" href="/">
+			<AstroLogo class="relative" />
+			<span class="sr-only">Home</span>
+		</a>
+	</div>
+	<div class="flex flex-1 justify-end gap-2">
+		<CartDrawer client:idle />
+	</div>
+</nav>
+
+<script>
+	function focusSearch() {
+		const searchInput = document.getElementById('global-search');
+		if (window.location.pathname.startsWith('/search')) {
+			searchInput!.focus();
+		}
+	}
+	document.addEventListener('astro:page-load', focusSearch);
+	document.addEventListener('astro:after-swap', focusSearch);
+</script>

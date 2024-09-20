@@ -1,0 +1,20 @@
+---
+import CollectionSection from '~/features/collection/CollectionSection.astro';
+import LandingHero from '~/components/LandingHero.astro';
+import ProductCarouselSection from '~/features/product/ProductCarouselSection.astro';
+import { applyDefaultCacheHeaders } from '~/config.ts';
+import PrimaryLayout from '~/layouts/PrimaryLayout.astro';
+
+applyDefaultCacheHeaders(Astro.response.headers);
+---
+
+<PrimaryLayout title="Astro Shop">
+	<LandingHero />
+	<main class="breakout mt-16 flex flex-col gap-y-16">
+		<div class="content">
+			<ProductCarouselSection heading="Popular right now" />
+		</div>
+
+		<CollectionSection />
+	</main>
+</PrimaryLayout>

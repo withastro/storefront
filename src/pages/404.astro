@@ -1,0 +1,21 @@
+---
+import CollectionSection from '~/features/collection/CollectionSection.astro';
+import PrimaryLayout from '~/layouts/PrimaryLayout.astro';
+
+export const prerender = true;
+---
+
+<PrimaryLayout title="Astro Shop">
+	<main>
+		<div class="mx-auto my-16 grid max-w-xl lg:my-32">
+			<h1 class="mb-6 text-3xl font-semibold sm:text-5xl">Sorry, couldn't find that.</h1>
+			<p>
+				Looks like that page no longer exists. Let's get you <a
+					class="font-semibold underline"
+					href="/">back to the shop.</a
+				>
+			</p>
+		</div>
+		<CollectionSection heading="Shop by category" />
+	</main>
+</PrimaryLayout>
