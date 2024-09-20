@@ -13,7 +13,10 @@ export function CartSummary() {
 	);
 
 	const subtotal = () =>
-		query.data.items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+		query.data.items.reduce(
+			(total, item) => total + (item.product.discount || item.product.price) * item.quantity,
+			0,
+		);
 
 	// const discount = () =>
 	// 	query.data.items.reduce(
