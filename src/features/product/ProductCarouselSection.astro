@@ -11,7 +11,9 @@ type Props = {
 const { heading, filterProducts = (products) => products } = Astro.props;
 
 const productsResponse = await getProducts();
-const products = filterProducts(productsResponse.data?.items ?? []);
+const products = filterProducts(productsResponse.data?.items ?? []).filter(
+	(product) => product.stock > 0,
+);
 ---
 
 <ProductCarousel {heading} client:idle>

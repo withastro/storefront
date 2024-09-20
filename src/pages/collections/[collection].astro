@@ -33,7 +33,7 @@ if (!productsResponse.data) {
 }
 
 const collection = collectionResponse.data;
-const products = productsResponse.data.items;
+const products = productsResponse.data.items.filter((product) => product.stock > 0);
 ---
 
 <PrimaryLayout title={`Astro Shop | ${collection.name}`}>

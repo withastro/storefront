@@ -13,6 +13,7 @@ const MAX_QUANTITY = 20;
 
 export function AddToCartForm(props: { product: Product }) {
 	const [quantity, setQuantity] = createSignal(1);
+	const inStock = () => props.product.stock > 0;
 
 	const [variationSelections, setVariationSelections] = createStore<Record<string, string | null>>(
 		Object.fromEntries(
@@ -101,30 +102,29 @@ export function AddToCartForm(props: { product: Product }) {
 				)}
 			</For>
 
-			<div class="mb-2">
-				<label for="quantity" class="mb-2 block text-slate-700">
-					Quantity
-				</label>
-				<NumberInput
-					id="quantity"
-					min={1}
-					max={Math.min(props.product.stock, MAX_QUANTITY)}
-					value={quantity()}
-					setValue={setQuantity}
-				/>
-			</div>
+			<Show when={inStock()}>
+				<div class="mb-2">
+					<label for="quantity" class="mb-2 block text-slate-700">
+						Quantity
+					</label>
+					<NumberInput
+						id="quantity"
+						min={1}
+						max={Math.min(props.product.stock, MAX_QUANTITY)}
+						value={quantity()}
+						setValue={setQuantity}
+					/>
+				</div>
+			</Show>
 
 			<div class="sticky bottom-4 grid gap-2">
-				{props.product.stock > 0 ? (
-					<Button type="submit" pending={mutation.isPending} disabled={mutation.isPending}>
-						Add to cart
-					</Button>
-				) : (
-					<p class="text-slate-500">Out of stock</p>
-				)}
-				{/* <aside class="text-sm text-slate-500">
-					Some kind of message can go here! RE: Shipping, returns, etc.
-				</aside> */}
+				<Button
+					type="submit"
+					pending={mutation.isPending}
+					disabled={!inStock() || mutation.isPending}
+				>
+					{inStock() ? 'Add to cart' : 'Out of stock'}
+				</Button>
 			</div>
 
 			<Show when={mutation.isError}>

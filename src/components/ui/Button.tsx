@@ -1,6 +1,7 @@
 import { RiSystemLoader2Line } from 'solid-icons/ri';
 import type { ComponentProps, JSX, JSXElement } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
+import { twMerge } from 'tailwind-merge';
 
 interface Props extends ComponentProps<'button'> {
 	pending?: boolean;
@@ -11,9 +12,12 @@ export function Button(props: Props) {
 		<button
 			{...props}
 			type={props.type ?? 'button'}
-			class={`flex h-12 items-center justify-center gap-3 bg-theme-base-900 px-4 text-sm font-semibold uppercase text-white transition hover:bg-theme-base-600 ${
-				props.pending ? 'opacity-50' : ''
-			} ${props.class ?? ''}`}
+			class={twMerge(
+				'flex h-12 items-center justify-center gap-3 bg-theme-base-900 px-4 text-sm font-semibold uppercase text-white transition ',
+				props.class,
+				(props.disabled || props.pending) && 'opacity-50',
+				!props.disabled && 'hover:bg-theme-base-600',
+			)}
 		>
 			{props.pending ? <RiSystemLoader2Line class="animate-spin" /> : props.children}
 		</button>
