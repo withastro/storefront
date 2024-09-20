@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import type { Product } from 'storefront:client';
+import { z } from 'zod';
 
 export interface Cart {
 	items: readonly LineItem[];
@@ -89,21 +89,31 @@ export function updateCartItemQuantity(cart: Cart, lineItemId: LineItemId, quant
 	};
 }
 
+/** Re-counts all of the cart items, keeping items with different variation selections separate */
 export function normalizeCart(cart: Cart) {
-	const itemsByProductId = new Map<string, LineItem>();
+	const items = new Map<string, LineItem>();
+
 	for (const item of cart.items) {
-		const seen = itemsByProductId.get(item.product.id);
-		if (seen) {
-			itemsByProductId.set(item.product.id, {
-				...item,
-				quantity: seen.quantity + item.quantity,
-			});
+		// make a deterministic key for the item based on product ID and variation selections
+		const key = [
+			item.product.id,
+			...item.variationSelections
+				// in order for the variation selection key to be deterministic,
+				// we have to have a predictable order of variations between each item
+				.toSorted((a, b) => a.variation.id.localeCompare(b.variation.id))
+				.flatMap((selection) => [selection.variation.id, selection.option.id]),
+		].join(':');
+
+		const existing = items.get(key);
+		if (!existing) {
+			items.set(key, item);
 		} else {
-			itemsByProductId.set(item.product.id, item);
+			items.set(key, { ...existing, quantity: existing.quantity + item.quantity });
 		}
 	}
+
 	return {
 		...cart,
-		items: [...itemsByProductId.values()],
+		items: [...items.values()],
 	};
 }
