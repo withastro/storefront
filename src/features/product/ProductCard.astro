@@ -1,9 +1,10 @@
 ---
 import { Image } from 'astro:assets';
-import { formatProductPrice } from '~/lib/currency.ts';
 import type { Product } from 'storefront:client';
 import { twMerge } from 'tailwind-merge';
 import Card from '~/components/ui/Card.tsx';
+import { formatProductPrice } from '~/lib/currency.ts';
+import { productPath } from '~/paths.ts';
 import { ProductPrice } from './ProductPrice.tsx';
 
 interface Props extends Product {
@@ -16,7 +17,7 @@ const { class: className, elementId, imageLoading, ...product } = Astro.props;
 ---
 
 <a
-	href={`/${product.slug}`}
+	href={productPath(product.slug)}
 	class={twMerge(`group relative block w-full focus-visible:ring-0`, className)}
 	id={elementId ?? undefined}
 	aria-label={`${product.name} for ${formatProductPrice(product.price)}`}

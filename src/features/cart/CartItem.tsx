@@ -1,3 +1,4 @@
+import { actions } from 'astro:actions';
 import { createMutation } from '@tanstack/solid-query';
 import { RiSystemDeleteBinLine } from 'solid-icons/ri';
 import { Show } from 'solid-js';
@@ -10,9 +11,9 @@ import {
 } from '~/features/cart/cart.ts';
 import { ProductPrice } from '~/features/product/ProductPrice.tsx';
 import { queryClient } from '~/lib/query.ts';
+import { productPath } from '~/paths.ts';
 import { card } from '~/styles.ts';
 import { cartQueryOptions } from './cart.queries.ts';
-import { actions } from 'astro:actions';
 
 export function CartItem(props: { item: LineItem; class?: string }) {
 	const updateMutation = createMutation(
@@ -61,14 +62,14 @@ export function CartItem(props: { item: LineItem; class?: string }) {
 	return (
 		<Show when={deleteMutation.isIdle}>
 			<div class={`flex items-start gap-8 ${props.class ?? ''}`}>
-				<div class={card({ className: 'w-32' })}>
+				<a href={productPath(props.item.product.slug)} class={card({ className: 'w-32' })}>
 					<img
 						src={props.item.product.imageUrl}
 						width={128}
 						height={128}
 						alt={props.item.product.name}
 					/>
-				</div>
+				</a>
 
 				<div class="flex flex-1 flex-col">
 					<p class="mt-auto py-2 text-lg/none font-medium text-slate-700">

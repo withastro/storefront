@@ -1,7 +1,7 @@
 ---
-import { z } from 'astro/zod';
 import { GOOGLE_GEOLOCATION_SERVER_KEY } from 'astro:env/server';
-import { getOrderById, type Address } from 'storefront:client';
+import { type Address, getOrderById } from 'storefront:client';
+import { z } from 'astro/zod';
 import successIcon from '~/assets/checkout-success-icon.svg';
 import Shipping from '~/components/Shipping.astro';
 import { ONE_DAY } from '~/config.ts';
@@ -10,6 +10,7 @@ import { formatOneLineAddress } from '~/lib/address.ts';
 import { formatProductPrice } from '~/lib/currency.ts';
 import { joinWithProducts } from '~/lib/products.ts';
 import { unwrap } from '~/lib/util.ts';
+import { productPath } from '~/paths.ts';
 
 const orderId = unwrap(Astro.params.order, 'order param not found');
 
@@ -98,24 +99,22 @@ if (!order.shippingAddress) {
 		<h2 class="mb-4 mt-8 text-lg font-bold">Items in your order</h2>
 		<ul>
 			{
-				lineItems.map(({ quantity, product }) => {
-					return (
-						<Fragment>
-							<li class="flex items-center gap-2 py-2">
-								<img
-									src={product.imageUrl}
-									alt={product.name}
-									class="size-24 rounded object-contain"
-								/>
-								<div class="flex flex-1 flex-col gap-1">
-									<h3>{product.name}</h3>
-									<p class="text-slate-600">Quantity: {quantity}</p>
-								</div>
-								<p class="text-slate-600">{formatProductPrice(product.price * quantity)}</p>
-							</li>
-						</Fragment>
-					);
-				})
+				lineItems.map(({ quantity, product }) => (
+					<li>
+						<a class="flex items-center gap-2 py-2" href={productPath(product.slug)}>
+							<img
+								src={product.imageUrl}
+								alt={product.name}
+								class="size-24 rounded object-contain"
+							/>
+							<div class="flex flex-1 flex-col gap-1">
+								<h3>{product.name}</h3>
+								<p class="text-slate-600">Quantity: {quantity}</p>
+							</div>
+							<p class="text-slate-600">{formatProductPrice(product.price * quantity)}</p>
+						</a>
+					</li>
+				))
 			}
 		</ul>
 		<div class="flex justify-between gap-4">
