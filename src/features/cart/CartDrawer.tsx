@@ -28,6 +28,9 @@ export function CartDrawer() {
 						<Button type="submit">Checkout</Button>
 					</form>
 				</Show>
+				<aside class="mt-3 text-balance text-center text-sm font-medium text-theme-base-500">
+					Discount and shipping will be calculated on the checkout page.
+				</aside>
 			</div>
 		</Drawer>
 	);

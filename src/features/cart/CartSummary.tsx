@@ -15,13 +15,13 @@ export function CartSummary() {
 	const subtotal = () =>
 		query.data.items.reduce((total, item) => total + item.product.price * item.quantity, 0);
 
-	const discount = () =>
-		query.data.items.reduce(
-			(total, item) => total + (item.product.discount ?? 0) * item.quantity,
-			0,
-		);
+	// const discount = () =>
+	// 	query.data.items.reduce(
+	// 		(total, item) => total + (item.product.discount ?? 0) * item.quantity,
+	// 		0,
+	// 	);
 
-	const total = () => subtotal() - discount();
+	// const total = () => subtotal() - discount();
 
 	return (
 		<div class="flex h-full min-h-0 flex-col">
@@ -32,14 +32,14 @@ export function CartSummary() {
 			</ul>
 			<Show when={query.data.items.length > 0}>
 				<dl class="grid grid-cols-[auto,1fr] gap-3 py-3 [&>dd]:text-right">
-					<dt class="font-normal text-slate-600">Subtotal</dt>
+					{/* <dt class="font-normal text-slate-600">Subtotal</dt>
 					<dd class="font-medium text-slate-700">{formatProductPrice(subtotal())}</dd>
 					<dt class="font-normal text-slate-600">Discount</dt>
 					<dd class="font-medium text-slate-700">{formatProductPrice(discount())}</dd>
-					<hr class="col-span-2 border-t border-slate-200" />
-					<dt class="my-2 text-lg font-normal text-slate-600">Total</dt>
+					<hr class="col-span-2 border-t border-slate-200" /> */}
+					<dt class="my-2 text-lg font-normal text-slate-600">Subtotal</dt>
 					<dd class="my-2 text-xl font-medium text-slate-700" data-testid="cart-total">
-						{formatProductPrice(total())}
+						{formatProductPrice(subtotal())}
 					</dd>
 				</dl>
 			</Show>
