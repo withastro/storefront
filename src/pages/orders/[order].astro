@@ -107,6 +107,11 @@ if (!order.shippingAddress) {
 								alt={product.name}
 								class="size-24 rounded object-contain"
 							/>
+							<p class="-mt-[3px] font-medium text-slate-500">
+								{order.variationSelections
+									.map((variation) => `${variation.option.caption} `)
+									.join(' • ')}
+							</p>
 							<div class="flex flex-1 flex-col gap-1">
 								<h3>{product.name}</h3>
 								<p class="text-slate-600">Quantity: {quantity}</p>
