@@ -1,15 +1,15 @@
 ---
-import { GOOGLE_GEOLOCATION_SERVER_KEY } from 'astro:env/server';
-import { formatProductPrice } from '~/lib/currency.ts';
-import { unwrap } from '~/lib/util.ts';
 import { z } from 'astro/zod';
+import { GOOGLE_GEOLOCATION_SERVER_KEY } from 'astro:env/server';
+import { getOrderById, type Address } from 'storefront:client';
 import successIcon from '~/assets/checkout-success-icon.svg';
 import Shipping from '~/components/Shipping.astro';
 import { ONE_DAY } from '~/config.ts';
 import PrimaryLayout from '~/layouts/PrimaryLayout.astro';
 import { formatOneLineAddress } from '~/lib/address.ts';
-import { getOrderById, type Address } from 'storefront:client';
+import { formatProductPrice } from '~/lib/currency.ts';
 import { joinWithProducts } from '~/lib/products.ts';
+import { unwrap } from '~/lib/util.ts';
 
 const orderId = unwrap(Astro.params.order, 'order param not found');
 
@@ -76,7 +76,7 @@ if (!order.shippingAddress) {
 ---
 
 <PrimaryLayout title="Thanks for your order">
-	<div class="mx-auto w-full max-w-prose text-slate-900">
+	<div class="mx-auto w-full max-w-prose text-slate-900 gap-y-2 flex flex-col">
 		<header class="flex flex-col gap-4 py-8">
 			<img
 				src={successIcon.src}
@@ -120,11 +120,15 @@ if (!order.shippingAddress) {
 			}
 		</ul>
 		<div class="flex justify-between gap-4">
-			<p>Total</p>
-			<p class="text-right">{formatProductPrice(order.totalPrice)}</p>
+			<p>Subtotal</p>
+			<p class="text-right">{formatProductPrice(order.totalPrice - order.shippingPrice)}</p>
 		</div>
-		<hr class="my-4" />
 		<div class="flex justify-between gap-4">
+			<p>Shipping</p>
+			<p class="text-right">{formatProductPrice(order.shippingPrice)}</p>
+		</div>
+		<hr class="my-2" />
+		<div class="flex justify-between gap-4 text-lg">
 			<p>Total</p>
 			<p class="text-right">{formatProductPrice(order.totalPrice)}</p>
 		</div>

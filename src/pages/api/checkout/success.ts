@@ -1,12 +1,12 @@
 import type { APIRoute } from 'astro';
+import { STRIPE_SECRET_KEY } from 'astro:env/server';
+import { createCustomer, createOrder } from 'storefront:client';
 import Stripe from 'stripe';
 import { saveCartToCookies } from '~/features/cart/cart.server.ts';
 import { emptyCart } from '~/features/cart/cart.ts';
 import { formatOneLineAddress } from '~/lib/address';
 import { sendCheckoutSuccessEmail } from '~/lib/emails.ts';
 import { stripeProductMetadataSchema } from '~/lib/products.ts';
-import { STRIPE_SECRET_KEY } from 'astro:env/server';
-import { createCustomer, createOrder } from 'storefront:client';
 
 export const GET: APIRoute = async (context) => {
 	const stripe = new Stripe(STRIPE_SECRET_KEY);
@@ -94,6 +94,10 @@ async function createOrderFromStripe(
 			customerId: customer.id,
 			customerName: customer.name,
 			totalPrice: session.amount_total ?? 0,
+			shippingPrice:
+				typeof session.shipping_cost === 'number'
+					? session.shipping_cost
+					: session.shipping_cost?.amount_total ?? 0,
 			lineItems: lineItems.map((item) => {
 				const metadata = stripeProductMetadataSchema.parse(
 					(item.price?.product as Stripe.Product).metadata,
