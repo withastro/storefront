@@ -15,8 +15,7 @@ const orderId = unwrap(Astro.params.order, 'order param not found');
 
 const orderResponse = await getOrderById({ path: { id: orderId } });
 if (orderResponse.error) {
-	Astro.response.status = 404;
-	return Astro.rewrite('/404');
+	return Astro.redirect('/');
 }
 const order = orderResponse.data;
 const lineItems = await joinWithProducts(order.lineItems);
