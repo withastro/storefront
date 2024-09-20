@@ -82,6 +82,14 @@ export default defineConfig({
 					access: 'secret',
 					optional: true,
 				}),
+				US_SHIPPING_RATE_ID: envField.string({
+					context: 'server',
+					access: 'secret',
+				}),
+				INTERNATIONAL_SHIPPING_RATE_ID: envField.string({
+					context: 'server',
+					access: 'secret',
+				}),
 			},
 		},
 	},
