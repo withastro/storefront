@@ -21,7 +21,7 @@ const collectionResponse = await getCollectionById({
 });
 
 if (collectionResponse.error) {
-	return new Response(null, { status: 404 });
+	return Astro.redirect('/');
 }
 
 const productsResponse = await getProducts({
