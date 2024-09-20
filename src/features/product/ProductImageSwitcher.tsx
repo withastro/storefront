@@ -19,16 +19,11 @@ export function ProductImageSwitcher(props: ProductImageSwitcherProps) {
 	return (
 		<div class="flex aspect-[10/9] items-stretch gap-2">
 			<div class="relative flex flex-col gap-[inherit] overflow-hidden will-change-scroll">
-				<For each={repeat(props.productImages, 3)}>
+				<For each={props.productImages}>
 					{(image, index) => (
 						<button
-							onClick={(event) => {
+							onClick={() => {
 								setCurrentImageIndex(index());
-								event.currentTarget.scrollIntoView({
-									behavior: 'smooth',
-									block: 'center',
-									inline: 'nearest',
-								});
 							}}
 							class={twMerge(
 								'relative aspect-square h-20 flex-shrink-0 border border-theme-base-200 bg-theme-base-100 p-1 first:mt-auto last:mb-auto',
@@ -64,8 +59,4 @@ export function ProductImageSwitcher(props: ProductImageSwitcherProps) {
 			</Card>
 		</div>
 	);
-}
-
-function repeat<T>(iterable: Iterable<T>, count: number): T[] {
-	return Array.from({ length: count }, () => [...iterable]).flat();
 }
