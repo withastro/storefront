@@ -44,13 +44,13 @@ const { title } = Astro.props;
 			)
 		}
 	</head>
-	<body class="content-grid min-h-screen place-content-start">
+	<body class="content-grid min-h-screen">
 		<SiteRibbon />
 		<div class={`breakout border-b w-full border-theme-base-300`}></div>
 		<SiteHeader />
 		<div class={`breakout border-b w-full border-theme-base-300`}></div>
 		<slot />
-		<div class="align-self-end h-full pt-48">
+		<div class="pt-48">
 			<SiteFooter />
 		</div>
 		{import.meta.env.DEV && <SolidQueryDevtools client:idle />}
