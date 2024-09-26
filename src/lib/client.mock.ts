@@ -113,7 +113,10 @@ export const createOrder = <ThrowOnError extends boolean = false>(
 		number: 1001,
 		lineItems: options.body.lineItems.map((lineItem) => ({
 			...lineItem,
-			id: `line-item-${lineItem.productId}`,
+			id: crypto.randomUUID(),
+			variationSelections: lineItem.variationSelections.map(({ variationId, optionId }) => {
+				return createOrderVariationSelection(lineItem.productId, variationId, optionId);
+			}),
 		})),
 		billingAddress: getAddress(options.body.billingAddress),
 		shippingAddress: getAddress(options.body.shippingAddress),
@@ -341,5 +344,35 @@ function getAddress(address: Required<CreateOrderData>['body']['shippingAddress'
 		company: address?.company ?? null,
 		firstName: address?.firstName ?? null,
 		lastName: address?.lastName ?? null,
+	};
+}
+
+function createOrderVariationSelection(
+	productId: string,
+	variationId: string,
+	optionId: string,
+): Order['lineItems'][number]['variationSelections'][number] {
+	const product = products[productId];
+	if (!product) {
+		throw new Error(`Product ${productId} not found`);
+	}
+	if (!product.variations) {
+		throw new Error(`Product ${productId} has no variations`);
+	}
+
+	const variation = product.variations.find((v) => v.id === variationId);
+	if (!variation) {
+		throw new Error(`Variation ${variationId} not found for product ${productId}`);
+	}
+
+	const option = variation.options.find((o) => o.id === optionId);
+	if (!option) {
+		throw new Error(`Option ${optionId} not found for variation ${variationId}`);
+	}
+
+	return {
+		id: `${variationId}-${optionId}`,
+		variation,
+		option,
 	};
 }

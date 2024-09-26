@@ -1,3 +1,5 @@
+import type { OverrideProperties } from 'type-fest';
+
 export type Product = {
 	id: string;
 	name: string;
@@ -71,10 +73,22 @@ export type Order = {
 	customerName: string;
 	number: number;
 	totalPrice: number;
+	shippingPrice: number;
 	lineItems: Array<{
 		id: string;
 		quantity: number;
 		productId: string;
+		variationSelections: Array<{
+			id: string;
+			variation: {
+				id: string;
+				name: string;
+			};
+			option: {
+				id: string;
+				caption: string;
+			};
+		}>;
 	}>;
 	billingAddress: Address;
 	shippingAddress: Address;
@@ -82,6 +96,24 @@ export type Order = {
 	updatedAt: string;
 	deletedAt: string | null;
 };
+
+export type OrderInput = OverrideProperties<
+	Order,
+	{
+		id: string;
+		number: number;
+		lineItems: Array<{
+			quantity: number;
+			productId: string;
+			variationSelections: Array<{
+				variationId: string;
+				optionId: string;
+			}>;
+		}>;
+		createdAt?: string | null;
+		updatedAt?: string | null;
+	}
+>;
 
 export type GetProductsData = {
 	query?: {
@@ -167,39 +199,7 @@ export type CreateCustomerResponse = Customer;
 export type CreateCustomerError = unknown;
 
 export type CreateOrderData = {
-	body?: {
-		customerId: string;
-		customerName: string;
-		totalPrice: number;
-		lineItems: Array<{
-			productId: string;
-			quantity: number;
-		}>;
-		shippingAddress?: {
-			line1: string;
-			line2: string;
-			city: string;
-			province: string;
-			country: string;
-			postal: string;
-			phone?: string;
-			company?: string;
-			firstName?: string;
-			lastName?: string;
-		};
-		billingAddress?: {
-			line1: string;
-			line2: string;
-			city: string;
-			province: string;
-			country: string;
-			postal: string;
-			phone?: string;
-			company?: string;
-			firstName?: string;
-			lastName?: string;
-		};
-	};
+	body?: OrderInput;
 };
 
 export type CreateOrderResponse = Order;
