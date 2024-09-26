@@ -1,6 +1,6 @@
-import type { APIRoute } from 'astro';
 import { STRIPE_SECRET_KEY } from 'astro:env/server';
 import { createCustomer, createOrder } from 'storefront:client';
+import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 import { saveCartToCookies } from '~/features/cart/cart.server.ts';
 import { emptyCart } from '~/features/cart/cart.ts';

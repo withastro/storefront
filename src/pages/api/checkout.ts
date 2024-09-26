@@ -1,9 +1,9 @@
-import type { APIRoute } from 'astro';
 import {
 	INTERNATIONAL_SHIPPING_RATE_ID,
 	STRIPE_SECRET_KEY,
 	US_SHIPPING_RATE_ID,
 } from 'astro:env/server';
+import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 import { z } from 'zod';
 import { loadCartFromCookies } from '~/features/cart/cart.server.ts';
@@ -11,6 +11,11 @@ import type { stripeProductMetadataSchema } from '~/lib/products.ts';
 
 export const POST: APIRoute = async (context) => {
 	const cart = await loadCartFromCookies(context.cookies);
+
+	// TODO: we probably want to check here the stock of items/variants
+	// because they could be in the checkout screen _while_ the last thing was being ordered,
+	// then get an error after submitting payment
+
 	const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 	const countrySpecs = await stripe.countrySpecs.retrieve('US');
