@@ -1,4 +1,4 @@
-import { getProducts } from 'storefront:client';
+import { type Product, getProducts } from 'storefront:client';
 import type { AstroCookies } from 'astro';
 import { type Cart, type CartData, cartDataSchema, expandLineItem } from './cart.ts';
 
@@ -11,20 +11,24 @@ export async function expandCartData(cartData: CartData): Promise<Cart> {
 		query: {},
 	});
 	if (!productsResponse.data) {
-		throw productsResponse.error;
+		throw new Error('Failed to fetch products', { cause: productsResponse.error });
 	}
 
-	const items = cartData.items.map((item) => {
-		const product = productsResponse.data.items.find(
-			(product) => product.id === item.productVariantId,
+	const items = expandCartDataFromProducts(cartData, productsResponse.data.items);
+
+	return { items };
+}
+
+export function expandCartDataFromProducts(cartData: CartData, products: Product[]) {
+	return cartData.items.map((item) => {
+		const product = products.find((product) =>
+			product.variants.some((variant) => variant.id === item.productVariantId),
 		);
 		if (!product) {
 			throw new Error(`Product not found for variant ${item.productVariantId}`);
 		}
 		return expandLineItem(item, product);
 	});
-
-	return { items };
 }
 
 export function toCartData(cart: Cart): CartData {

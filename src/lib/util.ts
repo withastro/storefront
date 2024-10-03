@@ -18,3 +18,7 @@ function safeStringify(value: unknown): string {
 		return String(value);
 	}
 }
+
+export function clamp(num: number, lower: number, upper: number) {
+	return Math.max(lower, Math.min(num, upper));
+}

@@ -178,10 +178,10 @@ const defaultVariant = {
 	options: {},
 };
 
-const apparelVariants = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].map((size) => ({
+const apparelVariants = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].map((size, index) => ({
 	id: size,
 	name: size,
-	stock: 10,
+	stock: index * 10,
 	options: {
 		Size: size,
 	},

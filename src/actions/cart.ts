@@ -22,7 +22,7 @@ export const cart = {
 			// we should add an endpoint to get product variants by ID,
 			// but for now, we'll just fetch all the products and filter
 			const products = await getProducts({
-				query: { ids: [input.productVariantId] },
+				query: {},
 			});
 
 			const product = products.data?.items.find((product) =>
