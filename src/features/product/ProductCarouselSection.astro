@@ -1,7 +1,8 @@
 ---
-import { getProducts, type Product } from 'storefront:client';
-import ProductCarousel, { MEASURED_ITEM_ID, GAP } from './ProductCarousel.tsx';
+import { type Product, getProducts } from 'storefront:client';
+import { getProductStock } from '~/lib/products.ts';
 import ProductCard from './ProductCard.astro';
+import ProductCarousel, { MEASURED_ITEM_ID, GAP } from './ProductCarousel.tsx';
 
 type Props = {
 	heading: string;
@@ -12,7 +13,7 @@ const { heading, filterProducts = (products) => products } = Astro.props;
 
 const productsResponse = await getProducts();
 const products = filterProducts(productsResponse.data?.items ?? []).filter(
-	(product) => product.stock > 0,
+	(product) => getProductStock(product) > 0,
 );
 ---
 

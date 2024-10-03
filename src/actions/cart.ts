@@ -1,3 +1,6 @@
+import { type ActionAPIContext, ActionError, defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+import { getProducts } from 'storefront:client';
 import { loadCartFromCookies, saveCartToCookies } from '~/features/cart/cart.server.ts';
 import {
 	type Cart,
@@ -8,9 +11,6 @@ import {
 	removeItemFromCart,
 	updateCartItemQuantity,
 } from '~/features/cart/cart.ts';
-import { type ActionAPIContext, ActionError, defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
-import { getProductById } from 'storefront:client';
 
 export const cart = {
 	get: defineAction({
@@ -19,20 +19,26 @@ export const cart = {
 	addItems: defineAction({
 		input: lineItemDataSchema.omit({ id: true }),
 		handler: async (input, ctx) => {
-			const product = await getProductById({
-				path: { id: input.productId },
+			// we should add an endpoint to get product variants by ID,
+			// but for now, we'll just fetch all the products and filter
+			const products = await getProducts({
+				query: { ids: [input.productVariantId] },
 			});
 
-			if (product.error) {
+			const product = products.data?.items.find((product) =>
+				product.variants.some((variant) => variant.id === input.productVariantId),
+			);
+
+			if (!product) {
 				throw new ActionError({
 					code: 'NOT_FOUND',
-					message: 'Product not found',
+					message: `Failed to find product with variant ID "${input.productVariantId}"`,
 				});
 			}
 
-			const lineItem = expandLineItem({ ...input, id: crypto.randomUUID() }, product.data);
+			const lineItem = expandLineItem({ ...input, id: crypto.randomUUID() }, product);
 
-			if (lineItem.quantity > lineItem.product.stock) {
+			if (lineItem.quantity > lineItem.productVariant.stock) {
 				throw new ActionError({
 					code: 'BAD_REQUEST',
 					message: 'Not enough stock',

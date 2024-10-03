@@ -44,6 +44,9 @@ importers:
       '@tanstack/solid-query-devtools':
         specifier: ^5.52.2
         version: 5.56.0(@tanstack/solid-query@5.56.0(solid-js@1.8.22))(solid-js@1.8.22)
+      '@total-typescript/ts-reset':
+        specifier: ^0.6.1
+        version: 0.6.1
       astro:
         specifier: ^4.12.2
         version: 4.15.4(@types/node@20.10.4)(rollup@4.21.3)(typescript@5.3.3)
@@ -108,6 +111,9 @@ importers:
       vite:
         specifier: ^5.4.5
         version: 5.4.5(@types/node@20.10.4)
+      vite-plugin-tsconfig-paths:
+        specifier: ^1.4.1
+        version: 1.4.1(typescript@5.3.3)(vite@5.4.5(@types/node@20.10.4))
       vitest:
         specifier: ^2.1.1
         version: 2.1.1(@types/node@20.10.4)
@@ -1318,6 +1324,9 @@ packages:
     resolution: {integrity: sha512-x5T4pO9kxPA992k2+2JpEkWm3Q+airHwYTa3+uVeyObcO0HP4vi9wRo3YulrBw1iXQzP9rEfvCqXU6uKnrw1hA==}
     peerDependencies:
       solid-js: ^1.6.0
+
+  '@total-typescript/ts-reset@0.6.1':
+    resolution: {integrity: sha512-cka47fVSo6lfQDIATYqb/vO1nvFfbPw7uWLayIXIhGETj0wcOOlrlkobOMDNQOFr9QOafegUPq13V2+6vtD7yg==}
 
   '@trysound/sax@0.2.0':
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
@@ -3799,6 +3808,11 @@ packages:
   typescript-auto-import-cache@0.3.3:
     resolution: {integrity: sha512-ojEC7+Ci1ij9eE6hp8Jl9VUNnsEKzztktP5gtYNRMrTmfXVwA1PITYYAkpxCvvupdSYa/Re51B6KMcv1CTZEUA==}
 
+  typescript-paths@1.5.1:
+    resolution: {integrity: sha512-lYErSLCON2MSplVV5V/LBgD4UNjMgY3guATdFCZY2q1Nr6OZEu4q6zX/rYMsG1TaWqqQSszg6C9EU7AGWMDrIw==}
+    peerDependencies:
+      typescript: ^4.7.2 || ^5
+
   typescript@5.3.3:
     resolution: {integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==}
     engines: {node: '>=14.17'}
@@ -3905,6 +3919,11 @@ packages:
     peerDependenciesMeta:
       '@testing-library/jest-dom':
         optional: true
+
+  vite-plugin-tsconfig-paths@1.4.1:
+    resolution: {integrity: sha512-pGpvsPGDpiM5z7I9ZhBe7H2WAH0gAC2Lh55rM3pE+84V2q7qojNO28wdUl4i/M4XUfJcilhyucmbc9D7IKqpXA==}
+    peerDependencies:
+      vite: '*'
 
   vite@5.4.5:
     resolution: {integrity: sha512-pXqR0qtb2bTwLkev4SE3r4abCNioP3GkjvIDLlzziPpXtHgiJIjuKl+1GN6ESOT3wMjG3JTeARopj2SwYaHTOA==}
@@ -5623,6 +5642,8 @@ snapshots:
     dependencies:
       '@tanstack/query-core': 5.56.0
       solid-js: 1.8.22
+
+  '@total-typescript/ts-reset@0.6.1': {}
 
   '@trysound/sax@0.2.0': {}
 
@@ -8645,6 +8666,10 @@ snapshots:
     dependencies:
       semver: 7.6.3
 
+  typescript-paths@1.5.1(typescript@5.3.3):
+    dependencies:
+      typescript: 5.3.3
+
   typescript@5.3.3: {}
 
   ufo@1.5.4: {}
@@ -8799,6 +8824,13 @@ snapshots:
       vitefu: 0.2.5(vite@5.4.5(@types/node@20.10.4))
     transitivePeerDependencies:
       - supports-color
+
+  vite-plugin-tsconfig-paths@1.4.1(typescript@5.3.3)(vite@5.4.5(@types/node@20.10.4)):
+    dependencies:
+      typescript-paths: 1.5.1(typescript@5.3.3)
+      vite: 5.4.5(@types/node@20.10.4)
+    transitivePeerDependencies:
+      - typescript
 
   vite@5.4.5(@types/node@20.10.4):
     dependencies:

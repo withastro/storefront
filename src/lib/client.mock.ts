@@ -114,9 +114,7 @@ export const createOrder = <ThrowOnError extends boolean = false>(
 		lineItems: options.body.lineItems.map((lineItem) => ({
 			...lineItem,
 			id: crypto.randomUUID(),
-			variationSelections: lineItem.variationSelections.map(({ variationId, optionId }) => {
-				return createOrderVariationSelection(lineItem.productId, variationId, optionId);
-			}),
+			productVariant: getProductVariantFromLineItemInput(lineItem.productVariantId),
 		})),
 		billingAddress: getAddress(options.body.billingAddress),
 		shippingAddress: getAddress(options.body.shippingAddress),
@@ -173,35 +171,26 @@ const collections: Record<string, Collection> = {
 	},
 };
 
-const shirtVariations = [
-	{
-		id: 'color',
-		name: 'Color',
-		options: [
-			{ id: 'grey', name: 'Grey', caption: 'Grey' },
-			{ id: 'black', name: 'Black', caption: 'Black' },
-			{ id: 'red', name: 'Red', caption: 'Red' },
-			{ id: 'blue', name: 'Blue', caption: 'Blue' },
-		],
+const defaultVariant = {
+	id: 'default',
+	name: 'Default',
+	stock: 20,
+	options: {},
+};
+
+const apparelVariants = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].map((size) => ({
+	id: size,
+	name: size,
+	stock: 10,
+	options: {
+		Size: size,
 	},
-	{
-		id: 'size',
-		name: 'Size',
-		options: [
-			{ id: 'xs', name: 'XS', caption: 'XS' },
-			{ id: 's', name: 'S', caption: 'S' },
-			{ id: 'm', name: 'M', caption: 'M' },
-			{ id: 'l', name: 'L', caption: 'L' },
-			{ id: 'xl', name: 'XL', caption: 'XL' },
-			{ id: 'xxl', name: 'XXL', caption: 'XXL' },
-			{ id: 'xxxl', name: 'XXXL', caption: 'XXXL' },
-		],
-	},
-];
+}));
 
 const productDefaults = {
 	description: '',
 	images: [],
+	variants: [defaultVariant],
 	discount: 0,
 	createdAt: new Date().toISOString(),
 	updatedAt: new Date().toISOString(),
@@ -210,95 +199,87 @@ const productDefaults = {
 
 const products: Record<string, Product> = {
 	'astro-icon-zip-up-hoodie': {
+		...productDefaults,
 		id: 'astro-icon-zip-up-hoodie',
 		name: 'Astro Icon Zip Up Hoodie',
 		slug: 'astro-icon-zip-up-hoodie',
 		tagline:
 			'No need to compress this .zip. The Zip Up Hoodie is a comfortable fit and fabric for all sizes.',
-		stock: 50,
 		price: 4500,
 		imageUrl: '/assets/astro-zip-up-hoodie.png',
-		variations: shirtVariations,
 		collectionIds: ['apparel', 'bestSellers'],
-		...productDefaults,
+		variants: apparelVariants,
 	},
 	'astro-logo-curve-bill-snapback-cap': {
+		...productDefaults,
 		id: 'astro-logo-curve-bill-snapback-cap',
 		name: 'Astro Logo Curve Bill Snapback Cap',
 		slug: 'astro-logo-curve-bill-snapback-cap',
 		tagline: 'The best hat for any occasion, no cap.',
-		stock: 50,
 		price: 2500,
 		imageUrl: '/assets/astro-cap.png',
 		collectionIds: ['apparel'],
-		...productDefaults,
 	},
 	'astro-sticker-sheet': {
+		...productDefaults,
 		id: 'astro-sticker-sheet',
 		name: 'Astro Sticker Sheet',
 		slug: 'astro-sticker-sheet',
 		tagline: "You probably want this for the fail whale sticker, don't you?",
-		stock: 50,
 		price: 1000,
 		imageUrl: '/assets/astro-universe-stickers.png',
 		collectionIds: ['stickers'],
-		...productDefaults,
 	},
 	'sticker-pack': {
+		...productDefaults,
 		id: 'sticker-pack',
 		name: 'Sticker Pack',
 		slug: 'sticker-pack',
 		tagline: 'Jam packed with the most popular stickers.',
-		stock: 50,
 		price: 500,
 		imageUrl: '/assets/astro-sticker-pack.png',
 		collectionIds: ['stickers', 'bestSellers'],
-		...productDefaults,
 	},
 	'astro-icon-unisex-shirt': {
+		...productDefaults,
 		id: 'astro-icon-unisex-shirt',
 		name: 'Astro Icon Unisex Shirt',
 		slug: 'astro-icon-unisex-shirt',
 		tagline: 'A comfy Tee with the classic Astro logo.',
-		stock: 50,
 		price: 1775,
 		imageUrl: '/assets/astro-unisex-tshirt.png',
-		variations: shirtVariations,
 		collectionIds: ['apparel'],
-		...productDefaults,
+		variants: apparelVariants,
 	},
 	'astro-icon-gradient-sticker': {
+		...productDefaults,
 		id: 'astro-icon-gradient-sticker',
 		name: 'Astro Icon Gradient Sticker',
 		slug: 'astro-icon-gradient-sticker',
 		tagline: "There gradi-ain't a better sticker than the classic Astro logo.",
-		stock: 50,
 		price: 200,
 		imageUrl: '/assets/astro-icon-sticker.png',
 		collectionIds: ['stickers', 'bestSellers'],
-		...productDefaults,
 	},
 	'astro-logo-beanie': {
+		...productDefaults,
 		id: 'astro-logo-beanie',
 		name: 'Astro Logo Beanie',
 		slug: 'astro-logo-beanie',
 		tagline: "There's never Bean a better hat for the winter season.",
-		stock: 50,
 		price: 1800,
 		imageUrl: '/assets/astro-beanie.png',
 		collectionIds: ['apparel', 'bestSellers'],
-		...productDefaults,
 	},
 	'lighthouse-100-sticker': {
+		...productDefaults,
 		id: 'lighthouse-100-sticker',
 		name: 'Lighthouse 100 Sticker',
 		slug: 'lighthouse-100-sticker',
 		tagline: 'Bad performance? Not in my (light) house.',
-		stock: 50,
 		price: 500,
 		imageUrl: '/assets/astro-lighthouse-sticker.png',
 		collectionIds: ['stickers'],
-		...productDefaults,
 	},
 	'houston-sticker': {
 		...productDefaults,
@@ -306,7 +287,6 @@ const products: Record<string, Product> = {
 		name: 'Houston Sticker',
 		slug: 'houston-sticker',
 		tagline: 'You can fit a Hous-ton of these on any laptop lid.',
-		stock: 50,
 		price: 250,
 		discount: 100,
 		imageUrl: '/assets/astro-houston-sticker.png',
@@ -347,32 +327,15 @@ function getAddress(address: Required<CreateOrderData>['body']['shippingAddress'
 	};
 }
 
-function createOrderVariationSelection(
-	productId: string,
-	variationId: string,
-	optionId: string,
-): Order['lineItems'][number]['variationSelections'][number] {
-	const product = products[productId];
-	if (!product) {
-		throw new Error(`Product ${productId} not found`);
+function getProductVariantFromLineItemInput(
+	variantId: string,
+): NonNullable<Order['lineItems']>[number]['productVariant'] {
+	for (const product of Object.values(products)) {
+		for (const variant of product.variants) {
+			if (variant.id === variantId) {
+				return { ...variant, product };
+			}
+		}
 	}
-	if (!product.variations) {
-		throw new Error(`Product ${productId} has no variations`);
-	}
-
-	const variation = product.variations.find((v) => v.id === variationId);
-	if (!variation) {
-		throw new Error(`Variation ${variationId} not found for product ${productId}`);
-	}
-
-	const option = variation.options.find((o) => o.id === optionId);
-	if (!option) {
-		throw new Error(`Option ${optionId} not found for variation ${variationId}`);
-	}
-
-	return {
-		id: `${variationId}-${optionId}`,
-		variation,
-		option,
-	};
+	throw new Error(`Product variant ${variantId} not found`);
 }

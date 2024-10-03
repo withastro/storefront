@@ -24,23 +24,18 @@ export const POST: APIRoute = async (context) => {
 		mode: 'payment',
 		line_items: cart.items.map<Stripe.Checkout.SessionCreateParams.LineItem>((item) => {
 			const metadata: z.input<typeof stripeProductMetadataSchema> = {
-				productId: item.product.id,
-				variationSelectionsJson: JSON.stringify(
-					item.variationSelections.map((selection) => ({
-						variationId: selection.variation.id,
-						optionId: selection.option.id,
-					})),
-				),
+				productVariantId: item.productVariantId,
+				productVariantJson: JSON.stringify(item.productVariant),
 			};
 			return {
 				price_data: {
 					currency: 'usd',
 					product_data: {
-						name: item.product.name,
-						images: [new URL(item.product.imageUrl, context.url).href],
+						name: item.productVariant.product.name,
+						images: [new URL(item.productVariant.product.imageUrl, context.url).href],
 						metadata,
 					},
-					unit_amount: item.product.price - item.product.discount,
+					unit_amount: item.productVariant.product.price - item.productVariant.product.discount,
 				},
 				quantity: item.quantity,
 			};

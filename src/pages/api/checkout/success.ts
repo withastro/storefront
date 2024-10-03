@@ -104,7 +104,7 @@ async function createOrderFromStripe(
 				);
 				return {
 					quantity: item.quantity ?? 1,
-					productId: metadata.productId,
+					productVariantId: metadata.productVariantId,
 				};
 			}),
 			shippingAddress: shipping_details
