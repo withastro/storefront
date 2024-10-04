@@ -6,7 +6,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"~/*": ["./src/*"],
-			"storefront:client": ["./src/lib/client.mock.ts"]
+			"storefront:client": ["./src/lib/client.ts"]
 		},
 		"jsx": "preserve",
 		"jsxImportSource": "solid-js"
