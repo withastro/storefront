@@ -20,15 +20,18 @@ export async function expandCartData(cartData: CartData): Promise<Cart> {
 }
 
 export function expandCartDataFromProducts(cartData: CartData, products: Product[]) {
-	return cartData.items.map((item) => {
-		const product = products.find((product) =>
-			product.variants.some((variant) => variant.id === item.productVariantId),
-		);
-		if (!product) {
-			throw new Error(`Product not found for variant ${item.productVariantId}`);
-		}
-		return expandLineItem(item, product);
-	});
+	return cartData.items
+		.map((item) => {
+			const product = products.find((product) =>
+				product.variants.some((variant) => variant.id === item.productVariantId),
+			);
+			if (!product) {
+				console.warn(`Product not found for variant ${item.productVariantId}`);
+				return;
+			}
+			return expandLineItem(item, product);
+		})
+		.filter(Boolean);
 }
 
 export function toCartData(cart: Cart): CartData {
