@@ -1,51 +1,50 @@
+import { actions } from 'astro:actions';
+import type { LineItemInput, Product } from 'storefront:client';
 import { createMutation } from '@tanstack/solid-query';
 import { RiSystemCheckLine } from 'solid-icons/ri';
-import { For, Show, createSignal } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { For, Match, Show, Switch, createEffect, createSignal } from 'solid-js';
 import { Button } from '~/components/ui/Button.tsx';
 import { NumberInput } from '~/components/ui/NumberInput.tsx';
 import { queryClient } from '~/lib/query.ts';
 import { CartStore } from './store.ts';
-import { actions } from 'astro:actions';
-import type { Product } from 'storefront:client';
 
 const MAX_QUANTITY = 20;
 
 export function AddToCartForm(props: { product: Product }) {
+	const [selectedOptions, setSelectedOptions] = createSignal<Record<string, string>>({});
 	const [quantity, setQuantity] = createSignal(1);
-	const inStock = () => props.product.stock > 0;
+	const [unpickedVariantVisible, setUnpickedVariantVisible] = createSignal(false);
 
-	const [variationSelections, setVariationSelections] = createStore<Record<string, string | null>>(
-		Object.fromEntries(
-			(props.product.variations ?? []).flatMap((variation) => {
-				// ignore variations without options
-				if (!variation.options[0]) {
-					return [];
-				}
-				return [[variation.id, null]];
-			}),
-		),
-	);
+	createEffect(() => {
+		// sometimes, the browser will pre-check an option if it was previously selected before a refresh,
+		// so we'll look for checked inputs and select the corresponding variant
+		for (const input of document.querySelectorAll('[data-product-option]')) {
+			if (!(input instanceof HTMLInputElement)) continue;
+			if (!input.checked) continue;
 
-	const [unpickedVariantsVisible, setUnpickedVariantsVisible] = createSignal(false);
+			const { productOption, productOptionValue } = input.dataset;
+			if (!productOption || !productOptionValue) {
+				continue;
+			}
 
-	const variationSelectionList = () =>
-		Object.entries(variationSelections)
-			// using flatMap because optionId might be nullish,
-			// and this is currently the most TS-friendly solution
-			.flatMap(([variationId, optionId]) => (optionId != null ? [{ variationId, optionId }] : []));
-
-	const mutationInput = () => ({
-		productId: props.product.id,
-		quantity: quantity(),
-		variationSelections: variationSelectionList(),
+			setSelectedOptions((options) => ({
+				...options,
+				[productOption]: productOptionValue,
+			}));
+		}
 	});
+
+	const selectedVariant = () =>
+		props.product.variants.find((variant) =>
+			// this could just be isEqual but y'all decided lodash is evil and I'm lazy
+			Object.entries(selectedOptions()).every(([key, value]) => variant.options[key] === value),
+		);
 
 	const mutation = createMutation(
 		() => ({
 			mutationKey: ['cart', 'items', 'add', props.product.id],
-			mutationFn: async () => {
-				return await actions.cart.addItems.orThrow(mutationInput());
+			mutationFn: async (input: LineItemInput) => {
+				return await actions.cart.addItems.orThrow(input);
 			},
 			// we explicitly don't want an optimistic update here,
 			// because we want to make sure the mutation succeeded
@@ -58,73 +57,100 @@ export function AddToCartForm(props: { product: Product }) {
 		() => queryClient,
 	);
 
+	const productOptionValues = () => {
+		const result = new Map<string, Set<string>>();
+		for (const variant of props.product.variants) {
+			for (const [option, value] of Object.entries(variant.options)) {
+				const values = result.get(option) ?? new Set();
+				values.add(value);
+				result.set(option, values);
+			}
+		}
+		return result;
+	};
+
+	const getVariantStock = (variant: Product['variants'][number] | undefined) =>
+		Math.min(variant?.stock ?? 0, MAX_QUANTITY);
+
 	return (
 		<form
 			class="grid gap-6"
 			onSubmit={(event) => {
 				event.preventDefault();
-				setUnpickedVariantsVisible(true);
-
-				if (Object.values(variationSelections).every((selection) => selection != null)) {
-					mutation.mutate();
+				const productVariant = selectedVariant();
+				if (productVariant) {
+					mutation.mutate({ productVariantId: productVariant.id, quantity: quantity() });
+				} else {
+					setUnpickedVariantVisible(true);
 				}
 			}}
 		>
-			<For each={props.product.variations}>
-				{(variation) => (
-					<fieldset>
-						<legend class="mb-1 text-slate-700">{variation.name}</legend>
-						<Show when={unpickedVariantsVisible() && !variationSelections[variation.id]}>
-							<p role="alert" class="mb-2 text-sm text-red-400">
-								Please make a selection.
-							</p>
-						</Show>
-						<div class="flex flex-wrap gap-2">
-							<For each={variation.options}>
-								{(option) => (
-									<label class="flex h-11 min-w-11 items-center justify-center gap-1.5 border border-slate-300 bg-slate-100 px-3 text-center text-sm text-slate-600 transition hover:border-slate-500 has-[:checked]:border-slate-900 has-[:checked]:text-slate-900">
-										<input
-											type="radio"
-											value={option.id}
-											class="peer sr-only"
-											checked={variationSelections[variation.id] === option.id}
-											onChange={() => {
-												setVariationSelections(variation.id, option.id);
-											}}
-										/>
-										<div>{option.caption}</div>
-										<RiSystemCheckLine class="hidden peer-checked:block" />
-									</label>
-								)}
-							</For>
-						</div>
-					</fieldset>
-				)}
-			</For>
-
-			<Show when={inStock()}>
-				<div class="mb-2">
-					<label for="quantity" class="mb-2 block text-slate-700">
-						Quantity
-					</label>
-					<NumberInput
-						id="quantity"
-						min={1}
-						max={Math.min(props.product.stock, MAX_QUANTITY)}
-						value={quantity()}
-						setValue={setQuantity}
-					/>
-				</div>
+			<Show when={props.product.variants.length > 1}>
+				<For each={[...productOptionValues().entries()]}>
+					{([option, values]) => (
+						<fieldset>
+							<legend class="mb-1 text-slate-700">{option ?? 'Variants'}</legend>
+							<Show when={unpickedVariantVisible() && !selectedVariant()}>
+								<p role="alert" class="mb-2 text-sm text-red-400">
+									Please make a selection.
+								</p>
+							</Show>
+							<div class="flex flex-wrap gap-2">
+								<For each={[...values]}>
+									{(value) => (
+										<label class="flex h-11 min-w-11 items-center justify-center gap-1.5 border border-slate-300 bg-slate-100 px-3 text-center text-sm text-slate-600 transition hover:border-slate-500 has-[:checked]:border-slate-900 has-[:checked]:text-slate-900">
+											<input
+												type="radio"
+												value={value}
+												class="peer sr-only"
+												checked={selectedOptions()[option] === value}
+												onChange={() => {
+													setSelectedOptions((options) => ({
+														...options,
+														[option]: value,
+													}));
+												}}
+												data-product-option={option}
+												data-product-option-value={value}
+											/>
+											<div>{value}</div>
+											<RiSystemCheckLine class="hidden peer-checked:block" />
+										</label>
+									)}
+								</For>
+							</div>
+						</fieldset>
+					)}
+				</For>
 			</Show>
 
+			<div class="mb-2">
+				<label for="quantity" class="mb-2 block text-slate-700">
+					Quantity
+				</label>
+				<NumberInput id="quantity" min={1} value={quantity()} setValue={setQuantity} />
+			</div>
 			<div class="sticky bottom-4 grid gap-2">
-				<Button
-					type="submit"
-					pending={mutation.isPending}
-					disabled={!inStock() || mutation.isPending}
+				<Switch
+					fallback={
+						<Button type="submit" pending={mutation.isPending}>
+							Add to cart
+						</Button>
+					}
 				>
-					{inStock() ? 'Add to cart' : 'Out of stock'}
-				</Button>
+					<Match when={Object.keys(selectedOptions()).length < productOptionValues().size}>
+						<p class="h-12">Choose a style.</p>
+					</Match>
+					<Match when={selectedVariant() == null}>
+						<p class="h-12">This style is unavailable.</p>
+					</Match>
+					<Match when={selectedVariant()?.stock === 0}>
+						<p class="h-12">This style is out of stock.</p>
+					</Match>
+					<Match when={quantity() > getVariantStock(selectedVariant())}>
+						<p class="h-12">Only {getVariantStock(selectedVariant())} left in stock.</p>
+					</Match>
+				</Switch>
 			</div>
 
 			<Show when={mutation.isError}>

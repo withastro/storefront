@@ -62,31 +62,35 @@ export function CartItem(props: { item: LineItem; class?: string }) {
 	return (
 		<Show when={deleteMutation.isIdle}>
 			<div class={`flex items-start gap-8 ${props.class ?? ''}`}>
-				<a href={productPath(props.item.product.slug)} class={card({ className: 'w-32' })}>
+				<a
+					href={productPath(props.item.productVariant.product.slug)}
+					class={card({ className: 'w-32' })}
+				>
 					<img
-						src={props.item.product.imageUrl}
+						src={props.item.productVariant.product.imageUrl}
 						width={128}
 						height={128}
-						alt={props.item.product.name}
+						alt={props.item.productVariant.product.name}
 					/>
 				</a>
 
 				<div class="flex flex-1 flex-col">
 					<p class="mt-auto py-2 text-lg/none font-medium text-slate-700">
-						{props.item.product.name}
+						{props.item.productVariant.product.name}
 					</p>
 
-					<Show when={props.item.variationSelections.length > 0}>
+					<Show when={Object.values(props.item.productVariant.options).length > 0}>
 						<p class="-mt-[3px] font-medium text-slate-500">
-							{props.item.variationSelections
-								.map((variation) => `${variation.option.caption} `)
-								.join(' • ')}
+							{Object.values(props.item.productVariant.options).join(' • ')}
 						</p>
 					</Show>
 
 					{/* this translation is for visual vertical centering */}
 					<p class="-translate-y-0.5 py-2 font-medium leading-none text-slate-600">
-						<ProductPrice price={props.item.product.price} discount={props.item.product.discount} />
+						<ProductPrice
+							price={props.item.productVariant.product.price}
+							discount={props.item.productVariant.product.discount}
+						/>
 					</p>
 
 					<NumberInput
