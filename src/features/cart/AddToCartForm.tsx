@@ -6,36 +6,39 @@ import { For, Match, Show, Switch, createEffect, createSignal } from 'solid-js';
 import { Button } from '~/components/ui/Button.tsx';
 import { NumberInput } from '~/components/ui/NumberInput.tsx';
 import { queryClient } from '~/lib/query.ts';
-import { clamp, unwrap } from '~/lib/util.ts';
 import { CartStore } from './store.ts';
 
 const MAX_QUANTITY = 20;
 
 export function AddToCartForm(props: { product: Product }) {
-	const [selectedVariant, setSelectedVariant] = createSignal<Product['variants'][number] | null>(
-		props.product.variants.length > 1 ? null : unwrap(props.product.variants[0]),
-	);
+	const [selectedOptions, setSelectedOptions] = createSignal<Record<string, string>>({});
+	const [quantity, setQuantity] = createSignal(1);
 	const [unpickedVariantVisible, setUnpickedVariantVisible] = createSignal(false);
-
-	const [quantitySignal, setQuantity] = createSignal(1);
-
-	const quantity = () => {
-		const value = quantitySignal();
-		return clamp(value, 1, Math.min(selectedVariant()?.stock ?? 0, MAX_QUANTITY));
-	};
 
 	createEffect(() => {
 		// sometimes, the browser will pre-check an option if it was previously selected before a refresh,
 		// so we'll look for checked inputs and select the corresponding variant
-		for (const input of document.querySelectorAll('[data-variant-id]')) {
-			if (input instanceof HTMLInputElement && input.checked) {
-				setSelectedVariant(
-					unwrap(props.product.variants.find((variant) => variant.id === input.dataset.variantId)),
-				);
-				break;
+		for (const input of document.querySelectorAll('[data-product-option]')) {
+			if (!(input instanceof HTMLInputElement)) continue;
+			if (!input.checked) continue;
+
+			const { productOption, productOptionValue } = input.dataset;
+			if (!productOption || !productOptionValue) {
+				continue;
 			}
+
+			setSelectedOptions((options) => ({
+				...options,
+				[productOption]: productOptionValue,
+			}));
 		}
 	});
+
+	const selectedVariant = () =>
+		props.product.variants.find((variant) =>
+			// this could just be isEqual but y'all decided lodash is evil and I'm lazy
+			Object.entries(selectedOptions()).every(([key, value]) => variant.options[key] === value),
+		);
 
 	const mutation = createMutation(
 		() => ({
@@ -54,25 +57,20 @@ export function AddToCartForm(props: { product: Product }) {
 		() => queryClient,
 	);
 
-	const variantsByOption = () => {
-		const result = new Map<string | null, Product['variants']>();
-
+	const productOptionValues = () => {
+		const result = new Map<string, Set<string>>();
 		for (const variant of props.product.variants) {
-			const optionNames = Object.keys(variant.options);
-
-			if (optionNames.length === 0) {
-				result.set(null, [variant]);
-				continue;
-			}
-
-			for (const option of optionNames) {
-				const variants = result.get(option) ?? [];
-				result.set(option, [...variants, variant]);
+			for (const [option, value] of Object.entries(variant.options)) {
+				const values = result.get(option) ?? new Set();
+				values.add(value);
+				result.set(option, values);
 			}
 		}
-
 		return result;
 	};
+
+	const getVariantStock = (variant: Product['variants'][number] | undefined) =>
+		Math.min(variant?.stock ?? 0, MAX_QUANTITY);
 
 	return (
 		<form
@@ -88,8 +86,8 @@ export function AddToCartForm(props: { product: Product }) {
 			}}
 		>
 			<Show when={props.product.variants.length > 1}>
-				<For each={[...variantsByOption().entries()]}>
-					{([option, variants]) => (
+				<For each={[...productOptionValues().entries()]}>
+					{([option, values]) => (
 						<fieldset>
 							<legend class="mb-1 text-slate-700">{option ?? 'Variants'}</legend>
 							<Show when={unpickedVariantVisible() && !selectedVariant()}>
@@ -98,20 +96,24 @@ export function AddToCartForm(props: { product: Product }) {
 								</p>
 							</Show>
 							<div class="flex flex-wrap gap-2">
-								<For each={variants}>
-									{(variant) => (
+								<For each={[...values]}>
+									{(value) => (
 										<label class="flex h-11 min-w-11 items-center justify-center gap-1.5 border border-slate-300 bg-slate-100 px-3 text-center text-sm text-slate-600 transition hover:border-slate-500 has-[:checked]:border-slate-900 has-[:checked]:text-slate-900">
 											<input
 												type="radio"
-												value={variant.id}
+												value={value}
 												class="peer sr-only"
-												checked={selectedVariant()?.id === variant.id}
+												checked={selectedOptions()[option] === value}
 												onChange={() => {
-													setSelectedVariant(variant);
+													setSelectedOptions((options) => ({
+														...options,
+														[option]: value,
+													}));
 												}}
-												data-variant-id={variant.id}
+												data-product-option={option}
+												data-product-option-value={value}
 											/>
-											<div>{option !== null ? variant.options[option] : variant.name}</div>
+											<div>{value}</div>
 											<RiSystemCheckLine class="hidden peer-checked:block" />
 										</label>
 									)}
@@ -126,20 +128,7 @@ export function AddToCartForm(props: { product: Product }) {
 				<label for="quantity" class="mb-2 block text-slate-700">
 					Quantity
 				</label>
-				<Show
-					when={selectedVariant()}
-					fallback={<NumberInput id="quantity" value={1} setValue={() => {}} disabled />}
-				>
-					{(variant) => (
-						<NumberInput
-							id="quantity"
-							min={1}
-							max={Math.min(variant().stock, MAX_QUANTITY)}
-							value={quantity()}
-							setValue={setQuantity}
-						/>
-					)}
-				</Show>
+				<NumberInput id="quantity" min={1} value={quantity()} setValue={setQuantity} />
 			</div>
 			<div class="sticky bottom-4 grid gap-2">
 				<Switch
@@ -149,15 +138,17 @@ export function AddToCartForm(props: { product: Product }) {
 						</Button>
 					}
 				>
-					<Match when={selectedVariant() === null}>
-						<Button type="submit" disabled>
-							Select a style
-						</Button>
+					<Match when={Object.keys(selectedOptions()).length < productOptionValues().size}>
+						<p class="h-12">Choose a style.</p>
+					</Match>
+					<Match when={selectedVariant() == null}>
+						<p class="h-12">This style is unavailable.</p>
 					</Match>
 					<Match when={selectedVariant()?.stock === 0}>
-						<Button type="submit" disabled>
-							Out of stock
-						</Button>
+						<p class="h-12">This style is out of stock.</p>
+					</Match>
+					<Match when={quantity() > getVariantStock(selectedVariant())}>
+						<p class="h-12">Only {getVariantStock(selectedVariant())} left in stock.</p>
 					</Match>
 				</Switch>
 			</div>
