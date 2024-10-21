@@ -1,6 +1,6 @@
 ---
 import { GOOGLE_GEOLOCATION_SERVER_KEY } from 'astro:env/server';
-import { type Address, getOrderById } from 'storefront:client';
+import { type Address, type LineItem, getOrderById } from 'storefront:client';
 import { z } from 'astro/zod';
 import successIcon from '~/assets/checkout-success-icon.svg';
 import Shipping from '~/components/Shipping.astro';
@@ -99,7 +99,7 @@ if (!order.shippingAddress) {
 		<h2 class="mb-4 mt-8 text-lg font-bold">Items in your order</h2>
 		<ul>
 			{
-				order.lineItems?.map(({ quantity, productVariant }) => (
+				(order.lineItems as LineItem[])?.map(({ quantity, productVariant }) => (
 					<li>
 						<a class="flex items-center gap-2 py-2" href={productPath(productVariant.product.slug)}>
 							<img
@@ -109,11 +109,30 @@ if (!order.shippingAddress) {
 							/>
 							<div class="flex flex-1 flex-col gap-1">
 								<h3>{productVariant.product.name}</h3>
-								<p class="text-slate-600">Quantity: {quantity}</p>
+								<div class="flex flex-wrap gap-1">
+									<p class="text-slate-700">Quantity: {quantity}</p>
+									{Object.entries(productVariant.options).map(([option, value]) => (
+										<p class="text-slate-700 before:text-slate-500 before:content-['•']">
+											{option}: {value}
+										</p>
+									))}
+								</div>
 							</div>
-							<p class="text-slate-600">
-								{formatProductPrice(productVariant.product.price * quantity)}
-							</p>
+							{productVariant.product.discount > 0 ? (
+								<p class="">
+									<span class="text-slate-500 line-through">
+										{formatProductPrice(productVariant.product.price * quantity)}
+									</span>
+									<br />
+									<span class="text-slate-700">
+										{formatProductPrice(
+											(productVariant.product.price - productVariant.product.discount) * quantity,
+										)}
+									</span>
+								</p>
+							) : (
+								<p class="">{formatProductPrice(productVariant.product.price * quantity)}</p>
+							)}
 						</a>
 					</li>
 				))
