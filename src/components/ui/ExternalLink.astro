@@ -9,6 +9,6 @@ const { target = '_blank', rel = 'noopener noreferrer', class: className, ...pro
 <a
 	target={target}
 	rel={rel}
-	class={`underline underline-offset-2 hover:no-underline ${className}`}
+	class:list={["underline underline-offset-2 hover:no-underline", className]}
 	{...props}><slot /></a
 >

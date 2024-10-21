@@ -1,45 +1,45 @@
+import { type Product, getProducts } from 'storefront:client';
 import type { AstroCookies } from 'astro';
-import { z } from 'zod';
-import { joinWithProducts } from '~/lib/products.ts';
-import { type Cart, expandLineItem } from './cart.ts';
-
-export type LineItemData = z.infer<typeof lineItemDataSchema>;
-
-export const lineItemDataSchema = z.object({
-	id: z.string(),
-	productId: z.string(),
-	quantity: z.number(),
-	variationSelections: z
-		.array(z.object({ variationId: z.string(), optionId: z.string() }))
-		.readonly(),
-});
-
-export type CartData = z.infer<typeof cartDataSchema>;
-export const cartDataSchema = z.object({
-	items: z.array(lineItemDataSchema),
-});
+import { type Cart, type CartData, cartDataSchema, expandLineItem } from './cart.ts';
 
 export function parseCartData(input: unknown): CartData {
 	return cartDataSchema.catch(() => ({ items: [] })).parse(input);
 }
 
 export async function expandCartData(cartData: CartData): Promise<Cart> {
-	const items = await joinWithProducts(cartData.items).then((items) =>
-		items.map(({ product, ...item }) => expandLineItem(item, product)),
-	);
+	const productsResponse = await getProducts({
+		query: {},
+	});
+	if (!productsResponse.data) {
+		throw new Error('Failed to fetch products', { cause: productsResponse.error });
+	}
+
+	const items = expandCartDataFromProducts(cartData, productsResponse.data.items);
+
 	return { items };
+}
+
+export function expandCartDataFromProducts(cartData: CartData, products: Product[]) {
+	return cartData.items
+		.map((item) => {
+			const product = products.find((product) =>
+				product.variants.some((variant) => variant.id === item.productVariantId),
+			);
+			if (!product) {
+				console.warn(`Product not found for variant ${item.productVariantId}`);
+				return;
+			}
+			return expandLineItem(item, product);
+		})
+		.filter(Boolean);
 }
 
 export function toCartData(cart: Cart): CartData {
 	return {
 		items: cart.items.map((item) => ({
 			id: item.id,
-			productId: item.product.id,
 			quantity: item.quantity,
-			variationSelections: item.variationSelections.map((selection) => ({
-				variationId: selection.variation.id,
-				optionId: selection.option.id,
-			})),
+			productVariantId: item.productVariantId,
 		})),
 	};
 }
