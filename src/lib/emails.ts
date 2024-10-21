@@ -1,11 +1,12 @@
-import Stripe from 'stripe';
-import { formatProductPrice } from '~/lib/currency.ts';
 import {
 	LOOPS_API_KEY,
 	LOOPS_FULFILLMENT_EMAIL,
 	LOOPS_FULFILLMENT_TRANSACTIONAL_ID,
 	LOOPS_SHOP_TRANSACTIONAL_ID,
 } from 'astro:env/server';
+import Stripe from 'stripe';
+import { formatProductPrice } from '~/lib/currency.ts';
+import { stripeProductMetadataSchema } from '~/lib/products';
 
 export async function sendCheckoutSuccessEmail(
 	email: string,
@@ -26,7 +27,17 @@ export async function sendCheckoutSuccessEmail(
 
 	const itemList = lineItems
 		.map((item) => {
-			return `${item.description} x ${item.quantity} for ${formatProductPrice(item.amount_total)}`;
+			const product = item.price?.product as Stripe.Product;
+			const meta = stripeProductMetadataSchema.parse(product.metadata);
+
+			// not the greatest check, but there's no way to know for sure
+			// whether this is a one-variant product or not,
+			// without making DB calls 🫠
+			const variantNameText = meta.variantName === 'Default' ? '' : ` (${meta.variantName})`;
+
+			return `${item.description}${variantNameText} x ${item.quantity} for ${formatProductPrice(
+				item.amount_total,
+			)}`;
 		})
 		.join('\n');
 
