@@ -8,18 +8,18 @@ import { ONE_DAY } from '~/config.ts';
 import PrimaryLayout from '~/layouts/PrimaryLayout.astro';
 import { formatOneLineAddress } from '~/lib/address.ts';
 import { formatProductPrice } from '~/lib/currency.ts';
-import { joinWithProducts } from '~/lib/products.ts';
 import { unwrap } from '~/lib/util.ts';
 import { productPath } from '~/paths.ts';
 
 const orderId = unwrap(Astro.params.order, 'order param not found');
 
 const orderResponse = await getOrderById({ path: { id: orderId } });
-if (orderResponse.error) {
+if (!orderResponse.data) {
+	console.error(orderResponse.error);
 	return Astro.redirect('/');
 }
+
 const order = orderResponse.data;
-const lineItems = await joinWithProducts(order.lineItems);
 
 async function getGeoLocation(address: Exclude<Address, null>) {
 	if (!GOOGLE_GEOLOCATION_SERVER_KEY) {
@@ -99,19 +99,21 @@ if (!order.shippingAddress) {
 		<h2 class="mb-4 mt-8 text-lg font-bold">Items in your order</h2>
 		<ul>
 			{
-				lineItems.map(({ quantity, product }) => (
+				order.lineItems?.map(({ quantity, productVariant }) => (
 					<li>
-						<a class="flex items-center gap-2 py-2" href={productPath(product.slug)}>
+						<a class="flex items-center gap-2 py-2" href={productPath(productVariant.product.slug)}>
 							<img
-								src={product.imageUrl}
-								alt={product.name}
+								src={productVariant.product.imageUrl}
+								alt={productVariant.product.name}
 								class="size-24 rounded object-contain"
 							/>
 							<div class="flex flex-1 flex-col gap-1">
-								<h3>{product.name}</h3>
+								<h3>{productVariant.product.name}</h3>
 								<p class="text-slate-600">Quantity: {quantity}</p>
 							</div>
-							<p class="text-slate-600">{formatProductPrice(product.price * quantity)}</p>
+							<p class="text-slate-600">
+								{formatProductPrice(productVariant.product.price * quantity)}
+							</p>
 						</a>
 					</li>
 				))
